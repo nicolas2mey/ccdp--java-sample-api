@@ -13,7 +13,7 @@
     <groupId>com.adeo</groupId>
     <artifactId>ccdp-java-sample-api</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>ccdp-java-sample-api</name>
+    <name>ccdp--java-sample-api</name>
     <description>Sample Java REST API with CCDP requirements.</description>
 
     <organization>
@@ -35,9 +35,9 @@
     </distributionManagement>
 
     <scm>
-        <url>https://github.com/jeremy-florte/sample-app</url>
-        <connection>scm:git:https://github.com/jeremy-florte/sample-app.git</connection>
-        <developerConnection>scm:git:https://github.com/jeremy-florte/sample-app.git</developerConnection>
+        <url>https://github.com/adeo/ccdp--java-sample-api</url>
+        <connection>scm:git:https://github.com/adeo/ccdp--java-sample-api.git</connection>
+        <developerConnection>scm:git:https://github.com/adeo/ccdp--java-sample-api.git</developerConnection>
         <tag>HEAD</tag>
     </scm>
 
@@ -62,6 +62,7 @@
         <assertj.version>3.20.2</assertj.version>
         <ok-http.version>4.9.1</ok-http.version>
 
+        <maven-copy-rename-maven-plugin.version>1.0</maven-copy-rename-maven-plugin.version>
         <maven-git-commit-id-plugin.version>2.2.4</maven-git-commit-id-plugin.version>
         <maven-buildnumber-plugin.version>1.4</maven-buildnumber-plugin.version>
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -242,6 +243,34 @@
 
     <build>
         <finalName>${project.artifactId}</finalName>
+
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>com.coderplus.maven.plugins</groupId>
+                    <artifactId>copy-rename-maven-plugin</artifactId>
+                    <version>${maven-copy-rename-maven-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>rename-sonar-project-properties</id>
+                            <phase>validate</phase>
+                            <goals>
+                                <goal>rename</goal>
+                            </goals>
+                            <configuration>
+                                <sourceFile>
+                                    ${project.build.directory}/sonar-project-parametrized.properties
+                                </sourceFile>
+                                <destinationFile>
+                                    ${project.build.directory}/sonar-project.properties
+                                </destinationFile>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+
         <plugins>
 
             <!-- Gets git branch data -->
@@ -296,6 +325,12 @@
                 <configuration>
                     <release>${java.version}</release>
                 </configuration>
+            </plugin>
+
+            <!-- Rename resources -->
+            <plugin>
+                <groupId>com.coderplus.maven.plugins</groupId>
+                <artifactId>copy-rename-maven-plugin</artifactId>
             </plugin>
 
             <!-- Unit Tests -->
@@ -372,6 +407,37 @@
                 </executions>
             </plugin>
 
+            <!-- Resources plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>filter-sonar-project-properties</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/</directory>
+                                    <filtering>true</filtering>
+                                    <includes>
+                                        <include>sonar-project-parametrized.properties</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Javadoc plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -419,37 +485,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-release-plugin</artifactId>
                 <version>${maven-release-plugin.version}</version>
-            </plugin>
-
-            <!-- Resources management plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven-resources-plugin.version}</version>
-                <configuration>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>filter-sonar-project-properties</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${basedir}/</directory>
-                                    <filtering>true</filtering>
-                                    <includes>
-                                        <include>sonar-project-parametrized.properties</include>
-                                    </includes>
-                                </resource>
-                            </resources>
-                        </configuration>
-                    </execution>
-                </executions>
             </plugin>
         </plugins>
 

@@ -1,8 +1,8 @@
-# [CCDP-OPS] Sample JAVA API application.
+# [CCDP-OPS] Sample JAVA API application. 
 
 A sample of a SpringBoot Java web application that has full compliance with CCDP requirements.
 
-## What it does.
+## 1. What it does.
 
 It will expose a dumb API with a few applicative routes (port 8080):
 
@@ -28,25 +28,27 @@ It will expose a dumb API with a few applicative routes (port 8080):
 - GET `/prometheus`
   - Returns prometheus metrics.
 
-## Technical stack.
+## 2. Technical stack.
 
-### Requirements.
+### 2.1. Requirements.
 
 - JDK 11+
 - Maven 3.6+
 
-### Stack.
+### 2.2. Frameworks.
 
 - Spring Boot 2.5+
+- Resilience4j
 
-## Usage.
+## 3. Usage.
 
-- Compile application:
+### 3.1. Build application.
+
 ```bash
-mvn compile
+mvn clean install
 ```
 
-- Run application:
+### 3.2. Run application.
 
 You must define some environment variables:
 

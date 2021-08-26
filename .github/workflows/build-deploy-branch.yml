@@ -4,6 +4,7 @@
 # - Builds selected branch (manual) or latest committed branch (automatic).
 # - Push analyze metrics to Sonar.
 # - Deploys built artifact in JFROG repository.
+# - Deploys application in Turbine (develop branch only).
 # -----------------------------------------------------------------------------
 name: build-deploy-branch
 
@@ -27,11 +28,11 @@ on:
       - develop
       - 'feat/**'
       - 'fix/**'
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # Automatic launch, launched on pull requests on:
-    # - develop
-    # - master
-    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Automatic launch, launched on pull requests on:
+  # - develop
+  # - master
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   pull_request:
     branches:
       - master
@@ -61,6 +62,11 @@ jobs:
       # Maven build options.
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       MAVEN_CLI_OPTS: "--batch-mode -Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Sonar settings.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      SONAR_URL: https://sonar.factory.adeo.cloud
+      SONAR_PROJECT_KEY: ccdp--java-sample-api
     steps:
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Information step, just reminds which branch is being built.
@@ -135,15 +141,14 @@ jobs:
       - name: Setup sonarqube
         uses: warchant/setup-sonar-scanner@v3
         with:
-         version: "4.4.0.2170"
+          version: "4.4.0.2170"
       - name: Run sonarqube
         run: sonar-scanner
-          ${{ env.sonar_branch_options }}
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-          -Dsonar.host.url=https://sonar.factory.adeo.cloud
-          -Dsonar.projectKey=${{ github.event.repository.name }}
-          -Dsonar.sources=.
+          -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+          -Dproject.settings=./target/sonar-project.properties
           ${{ env.sonar_options }}
+          -Dsonar.host.url=${{ env.SONAR_URL }}
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
   deploy:
     needs: build
