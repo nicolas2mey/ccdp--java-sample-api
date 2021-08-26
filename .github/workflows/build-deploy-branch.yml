@@ -23,13 +23,21 @@ on:
   #
   # TODO: add pull_request management on develop and master
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#  push:
-#    branches:
-#      - master
-#      - develop
-#      - 'feat/**'
-#      - 'fix/**'
-
+  push:
+    branches:
+      - master
+      - develop
+      - 'feat/**'
+      - 'fix/**'
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Automatic launch, launched on pull requests on:
+    # - develop
+    # - master
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  pull_request:
+    branches:
+      - master
+      - develop
 env:
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # JFROG artifactory repositories.

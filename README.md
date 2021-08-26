@@ -47,6 +47,23 @@ mvn compile
 ```
 
 - Run application:
+
+You must define some environment variables:
+
+```bash
+export BU_CODE=frlm && \
+export TANGRAM_LABEL=my-app && \
+export TANGRAM_UUID=42
+```
+
+You then need a Vault token (computed on `adeo/ccdp-ops-tooling` namespace) and exports it to a VAULT_TOKEN environment variable:
+
+```bash
+export VAULT_TOKEN=<my_token_value>
+```
+
+Then you can finally launch application:
+
 ```bash
 mvn -Dspring-boot.run.profiles=local spring-boot:run
 ```
