@@ -137,14 +137,13 @@ jobs:
         with:
          version: "4.4.0.2170"
       - name: Run sonarqube
-        env:
-          run: sonar-scanner
-            ${{ env.sonar_branch_options }}
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-            -Dsonar.host.url=https://sonar.factory.adeo.cloud
-            -Dsonar.projectKey=${{ github.event.repository.name }}
-            -Dsonar.sources=.
-            ${{ env.sonar_options }}
+        run: sonar-scanner
+          ${{ env.sonar_branch_options }}
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.host.url=https://sonar.factory.adeo.cloud
+          -Dsonar.projectKey=${{ github.event.repository.name }}
+          -Dsonar.sources=.
+          ${{ env.sonar_options }}
 
   deploy:
     needs: build
