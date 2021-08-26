@@ -1,0 +1,157 @@
+spring:
+  application:
+    name: ccdp-java-sample-api
+  cloud:
+    vault:
+      enabled: true
+      namespace: adeo/ccdp-ops-tooling
+      uri: https://vault.factory.adeo.cloud/
+      authentication: TOKEN
+      token: ${VAULT_TOKEN}
+      fail-fast: true
+      connection-timeout: 5000
+      read-timeout: 5000
+  config:
+    # NB: Spring documentation tells Vault contextualized path should include profile by themselves,
+    # but it just doesn't. So we add combinations manually.
+    # Here we can handle region and BU override in Vault configuration.
+    import: "
+      vault://secret/${spring.application.name},
+      vault://secret/${spring.application.name}/${spring.profiles.active},
+      vault://secret/${spring.application.name}/${BU_CODE},
+      vault://secret/${spring.application.name}/${BU_CODE}/${spring.profiles.active},
+      vault://secret/${spring.application.name}/${AVAILABILITY_ZONE:default}/${BU_CODE},
+      vault://secret/${spring.application.name}/${AVAILABILITY_ZONE:default}/${BU_CODE}/${spring.profiles.active}"
+  jmx:
+    enabled: false
+  main:
+    banner-mode: off
+
+
+logging:
+  level:
+    org.springframework: INFO
+    fr.leroymerlin: DEBUG
+
+
+server:
+  port: 8080
+  compression:
+    enabled: true
+  error:
+    whitelabel:
+      enabled: false
+
+
+management:
+  endpoint:
+    env:
+      enabled: true
+    health:
+      enabled: true
+      group:
+        readiness:
+          # Here, the warmup indicator is used as a condition for application's readiness.
+          include: ping, warmup
+          show-details: always
+        liveness:
+          include: ping
+          show-details: always
+      circuitbreakers:
+        enabled: true
+      timelimiter:
+        enabled: true
+    info:
+      enabled: true
+    prometheus:
+      enabled: true
+  endpoints:
+    web.base-path: /
+    enabled-by-default: true
+    web:
+      exposure:
+        include:
+          - health
+          - info
+          - env
+          - prometheus
+  server:
+    port: 8081
+    address: 0.0.0.0
+
+
+
+info:
+  app:
+    name: "@project.name@"
+    version: "@project.version@"
+    env: ${ENV}
+    build:
+      number: "@buildNumber@"
+      timestamp: "@timestamp@"
+    java:
+      version: "@java.version@"
+    git:
+      message: "@git.commit.message.short@"
+      branch: "@git.branch@"
+      commit: "@git.commit.id@"
+      tags: "@git.tags@"
+      commit.time: "@git.commit.time@"
+    description: ${spring.application.name}
+    id_tangram: ${TANGRAM_UUID}
+    project_tangram: ${TANGRAM_LABEL}
+    bu_code: ${BU_CODE}
+    stream: my_stream
+    feature: my_feature
+
+
+# Example of a secret that is stored in Vault.
+application:
+  key: VaultConfigShouldOverrideIt
+
+
+warmup:
+  uris:
+    - /users
+    - /numbers/random
+
+
+apis:
+  number:
+    name: number-api
+    base-url: http://numbersapi.com/
+    connection-settings:
+      connect-timeout: 250
+
+
+# More configuration options detailed here: https://resilience4j.readme.io/docs/getting-started-3
+resilience4j:
+  circuitbreaker:
+    instances:
+      number-api:
+        registerHealthIndicator: true
+        waitDurationInOpenState: 50s
+        failureRateThreshold: 50
+  timelimiter:
+    instances:
+      number-api:
+        registerHealthIndicator: true
+        timeoutDuration: 2s
+        cancelRunningFuture: true
+
+
+---
+spring:
+  cloud:
+    vault:
+      authentication: KUBERNETES
+      kubernetes:
+        role: ${VAULT_ROLE_NAME}
+        kubernetes-path: ${VAULT_K8S_AUTH_PATH}
+  config:
+    activate:
+      on-profile: dev,qa,sit,uat1,prep,prod
+
+logging:
+  level:
+    fr.leroymerlin: INFO

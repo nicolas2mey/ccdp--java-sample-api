@@ -1,0 +1,174 @@
+# -----------------------------------------------------------------------------
+# This workflow:
+#
+# - Builds selected branch (manual) or latest committed branch (automatic).
+# - Push analyze metrics to Sonar.
+# - Deploys built artifact in JFROG repository.
+# -----------------------------------------------------------------------------
+name: build-deploy-branch
+
+on:
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Manual launch, choose branch you want to (re)build.
+  #
+  # You'll be able to choose the branch you which when running action.
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  workflow_dispatch:
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Automatic launch, launched on push on:
+  # - develop
+  # - master
+  # - features branches, i.e. named feat/**
+  # - fix, i.e. named fix/**
+  #
+  # TODO: add pull_request management on develop and master
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#  push:
+#    branches:
+#      - master
+#      - develop
+#      - 'feat/**'
+#      - 'fix/**'
+
+env:
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # JFROG artifactory repositories.
+  #
+  # The dev Docker registry may differ considering where your team stores its
+  # artifacts.
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  ADEO_PUBLIC_REGISTRY: adeo-docker-public.jfrog.io
+  ADEO_DEV_DOCKER_REGISTRY: adeo-docker-asfr-ccdp-ops-dev.jfrog.io
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Built component name (should be the same as maven artifact id or generated jar).
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  COMPONENT_NAME: sample-app
+
+jobs:
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Launch maven build and push metrics to Sonar.
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Maven build options.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      MAVEN_CLI_OPTS: "--batch-mode -Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+    steps:
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Information step, just reminds which branch is being built.
+      #
+      # TODO: remove this step one done.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Display Build Branch
+        run: |
+          echo "Building branch ${GITHUB_REF}..."
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Checkout current branch.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - uses: actions/checkout@v2
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Set up JAVA compilation environment.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Caches maven dependencies (avoid downloading them for every build, remember
+      # build container will be destroyed after each run).
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Cache Maven packages
+        uses: actions/cache@v2
+        with:
+          path: "${{ github.workspace }}/.m2/repository"
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Customize Maven repositories (we use ADEO ones).
+      #
+      # Here, we are using repository secrets (ARTIFACTORY_USER and ARTIFACTORY_PWD)
+      # to provide JFROG maven repository access.
+      #
+      # It may be "easier" to use Vault instead for larger projects (to have a unique secret source).
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Configure maven settings
+        uses: s4u/maven-settings-action@v2.4.0
+        with:
+          servers: '[{"id": "adeo-artifactory-releases", "username": "${{ secrets.ARTIFACTORY_USER }}", "password": "${{ secrets.ARTIFACTORY_PWD }}"},{"id": "adeo-artifactory-snapshots", "username": "${{ secrets.ARTIFACTORY_USER }}", "password": "${{ secrets.ARTIFACTORY_PWD }}"},{"id": "adeo-artifactory-mirror", "username": "${{ secrets.ARTIFACTORY_USER }}", "password": "${{ secrets.ARTIFACTORY_PWD }}"}]'
+          mirrors: '[{"id": "adeo-artifactory-mirror", "name": "Adeo Artifactory Mirror Repository", "mirrorOf": "*", "url": "https://adeo.jfrog.io/adeo/maven-mirror"}]'
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Performs maven full build (with tests).
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Build with Maven
+        run: mvn ${{ env.MAVEN_CLI_OPTS }} verify
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Analyze with Sonar
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Login to ADEO Docker registries.
+      #
+      # As we are using Docker Collections images for JRE, we must be able to log to:
+      # - ADEO Public registry
+      # - ADEO Developer registry
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Login to ADEO pulic registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.ADEO_PUBLIC_REGISTRY }}
+          username: ${{ secrets.ARTIFACTORY_USER }}
+          password: ${{ secrets.ARTIFACTORY_PWD }}
+      - name: Login to ADEO development registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}
+          username: ${{ secrets.ARTIFACTORY_USER }}
+          password: ${{ secrets.ARTIFACTORY_PWD }}
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Dockers build and push to JFROG artifactory.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+#      - name: Build and push
+#        uses: docker/build-push-action@v2
+#        with:
+#          file: ./Dockerfile
+#          context: .
+#          push: true
+#          tags: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}
+
+#      - name: Get Secrets from Vault
+#        uses: hashicorp/vault-action@v2.1.0
+#        id: secrets
+#        with:
+#          url: ${{ env.VAULT_ADDR }}
+#          namespace: ${{ env.VAULT_NAMESPACE }}
+#          method: approle
+#          roleId: ${{ secrets.ROLE_ID }}
+#          secretId: ${{ secrets.SECRET_ID }}
+#          exportToken: true
+#          secrets: |
+#            secret/data/mailbrew-sms/ARTIFACTORY_API_KEY ARTIFACTORY_API_KEY | ARTIFACTORY_API_KEY ;
+#            secret/data/mailbrew-sms/ARTIFACTORY_USER ARTIFACTORY_USER | ARTIFACTORY_USER ;
+#            secret/data/mailbrew-sms/turbine-token turbine-token | TURBINE_TOKEN ;
+
+
+#      - run: echo EXEC_JAR_PATH=$EXEC_JAR_PATH
+#      - run: if [ ! -z "$EXEC_JAR_PATH" ]; then cp -rf $EXEC_JAR_PATH $DOCKER_BUILD_PATH ; fi
+
+#      #- name: Extract branch name for branch
+#      #  if: startsWith(github.ref, 'refs/heads/')
+#      #  run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
+#      #- name: Set escaped tag name
+#      #  run: echo "TAG_NAME=$(echo ${{ env.BRANCH_NAME }} | sed 's/\//-/g')" >> $GITHUB_ENV
+#      - name: Build and push
+#        uses: docker/build-push-action@v2
+#        with:
+#          file: ./Dockerfile
+#          context: .
+#          push: true
+#          tags: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:latest

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<included>
+  <property name="project_tangram" value="${TANGRAM_LABEL}" />
+  <property name="bu_code" value="${BU_CODE}" />
+  <property name="stream" value="my_stream" />
+  <property name="feature" value="my_feature" />
+</included>

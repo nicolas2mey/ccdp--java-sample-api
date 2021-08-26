@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: ccdp-java-sample-api
+  main:
+    banner-mode: off
+  profiles:
+    active: test
+
+logging:
+  level:
+    .: DEBUG
+
+# -----------------------------------------------------------------------------
+# Web Client configuration.
+# -----------------------------------------------------------------------------
+
+apis:
+  number:
+    name: number-api
+    base-url: http://localhost:9080/

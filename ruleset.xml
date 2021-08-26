@@ -1,0 +1,217 @@
+<?xml version="1.0"?>
+<ruleset name="quickstart"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+    <description>CCDP ruleset</description>
+
+    <exclude-pattern>.*MapperImpl.*</exclude-pattern>
+    <exclude-pattern>.*module-info.*</exclude-pattern>
+
+    <!--
+        *******************************************************************************************
+                                                BEST PRACTICES
+        *******************************************************************************************
+    -->
+
+    <rule ref="category/java/bestpractices.xml">
+        <!-- False positive with assertj and reactor add-ons -->
+        <exclude name="JUnitTestsShouldIncludeAssert"/>
+        <!-- Too many false positives -->
+        <exclude name="AccessorMethodGeneration" />
+        <!-- Override -->
+        <exclude name="AbstractClassWithoutAbstractMethod" />
+        <exclude name="UnusedPrivateMethod" />
+    </rule>
+
+    <rule ref="category/java/bestpractices.xml/AbstractClassWithoutAbstractMethod">
+       <properties>
+            <property name="violationSuppressXPath" value="//ClassOrInterfaceDeclaration[contains(@Image, 'Test')]"/>
+        </properties>
+    </rule>
+    <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod">
+        <properties>
+            <property name="violationSuppressXPath" value="//ClassOrInterfaceBodyDeclaration/Annotation/MarkerAnnotation/Name[@Image='PostConstruct']" />
+        </properties>
+    </rule>
+
+    <!--
+        *******************************************************************************************
+                                                CODE STYLE
+        *******************************************************************************************
+    -->
+
+    <rule ref="category/java/codestyle.xml">
+        <!-- Override -->
+        <exclude name="AtLeastOneConstructor" />
+        <exclude name="DefaultPackage" />
+        <exclude name="LongVariable" />
+        <exclude name="ShortClassName" />
+        <exclude name="ShortVariable" />
+        <exclude name="TooManyStaticImports" />
+        <!-- Not compliant with tests requirements -->
+        <exclude name="ClassNamingConventions" />
+        <exclude name="MethodNamingConventions" />
+        <exclude name="CommentDefaultAccessModifier"/>
+        <!-- Too controversial -->
+        <exclude name="LinguisticNaming" />
+    </rule>
+
+    <rule ref="category/java/codestyle.xml/AtLeastOneConstructor">
+        <properties>
+            <property name="violationSuppressXPath" value="//ClassOrInterfaceDeclaration[contains(@Image, 'Test')]"/>
+        </properties>
+    </rule>
+    <rule ref="category/java/codestyle.xml/ClassNamingConventions">
+        <properties>
+            <property name="classPattern" value="[A-Z][a-zA-Z0-9]*" />
+            <property name="abstractClassPattern" value="[A-Z][a-zA-Z0-9]*" />
+            <property name="interfacePattern" value="[A-Z][a-zA-Z0-9]*" />
+            <property name="enumPattern" value="[A-Z][a-zA-Z0-9]*" />
+            <property name="annotationPattern" value="[A-Z][a-zA-Z0-9]*" />
+            <property name="utilityClassPattern" value="[A-Z][a-zA-Z0-9]+(Utils?|Helper|Factory|Registry)" />
+        </properties>
+    </rule>
+    <rule ref="category/java/codestyle.xml/LongVariable">
+        <properties>
+            <property name="minimum" value="35" />
+        </properties>
+    </rule>
+    <rule ref="category/java/codestyle.xml/MethodNamingConventions">
+        <properties>
+            <property name="violationSuppressXPath" value="//ClassOrInterfaceDeclaration[contains(@Image, 'Test')]"/>
+        </properties>
+    </rule>
+    <rule ref="category/java/codestyle.xml/ShortClassName">
+        <properties>
+            <property name="minimum" value="3" />
+        </properties>
+    </rule>
+    <rule ref="category/java/codestyle.xml/ShortVariable">
+        <properties>
+            <property name="minimum" value="2" />
+       </properties>
+    </rule>
+    <rule ref="category/java/codestyle.xml/TooManyStaticImports">
+        <properties>
+            <property name="maximumStaticImports" value="10" />
+        </properties>
+    </rule>
+    <rule ref="category/java/codestyle.xml/CommentDefaultAccessModifier">
+        <properties>
+            <property name="violationSuppressXPath"
+                      value="//ClassOrInterfaceDeclaration[contains(@Image, 'Test')] | ./ancestor::TypeDeclaration/Annotation//Name[@Image='Value']"/>
+        </properties>
+    </rule>
+
+    <!--
+        *******************************************************************************************
+                                                DESIGN
+        *******************************************************************************************
+    -->
+
+    <rule ref="category/java/design.xml">
+        <!-- Override -->
+        <exclude name="TooManyMethods" />
+        <exclude name="UseUtilityClass" />
+        <!-- Not compliant with tests requirements -->
+        <exclude name="SignatureDeclareThrowsException" />
+        <!-- Too many false positives -->
+        <exclude name="LawOfDemeter" />
+    </rule>
+
+    <rule ref="category/java/design.xml/SignatureDeclareThrowsException">
+        <properties>
+            <property name="violationSuppressXPath" value="//ClassOrInterfaceDeclaration[contains(@Image, 'Test')]"/>
+        </properties>
+    </rule>
+    <rule ref="category/java/design.xml/TooManyMethods">
+         <properties>
+            <property name="maxmethods" value="20" />
+        </properties>
+    </rule>
+    <rule ref="category/java/design.xml/UseUtilityClass">
+        <properties>
+            <property name="violationSuppressXPath" value="./ancestor::TypeDeclaration/Annotation//Name[@Image='SpringBootApplication']" />
+        </properties>
+    </rule>
+
+    <!--
+        *******************************************************************************************
+                                             DOCUMENTATION
+        *******************************************************************************************
+    -->
+
+    <rule ref="category/java/documentation.xml">
+        <!-- Override -->
+        <exclude name="CommentRequired" />
+        <exclude name="CommentSize" />
+    </rule>
+
+    <rule ref="category/java/documentation.xml/CommentRequired">
+        <properties>
+            <property name="violationSuppressXPath" value="//ClassOrInterfaceDeclaration[contains(@Image, 'Test')]"/>
+            <property name="methodWithOverrideCommentRequirement" value="Ignored" />
+            <property name="accessorCommentRequirement" value="Ignored" />
+            <property name="fieldCommentRequirement" value="Ignored" />
+            <property name="publicMethodCommentRequirement" value="Required" />
+            <property name="protectedMethodCommentRequirement" value="Required" />
+            <property name="enumCommentRequirement" value="Required" />
+            <property name="serialVersionUIDCommentRequired" value="Ignored" />
+            <property name="serialPersistentFieldsCommentRequired" value="Ignored" />
+        </properties>
+    </rule>
+    <rule ref="category/java/documentation.xml/CommentSize">
+        <properties>
+            <property name="maxLines" value="20" />
+            <property name="maxLineLength" value="120" />
+        </properties>
+    </rule>
+
+    <!--
+        *******************************************************************************************
+                                             ERROR PRONE
+        *******************************************************************************************
+    -->
+
+    <rule ref="category/java/errorprone.xml">
+        <!-- Not suitable for Spring and Vert.X apps -->
+        <exclude name="BeanMembersShouldSerialize" />
+        <!-- Override -->
+        <excude name="DataflowAnomalyAnalysis" />
+    </rule>
+
+    <rule ref="category/java/errorprone.xml/DataflowAnomalyAnalysis">
+        <properties>
+            <!-- Too many false positives with Lambda & asynchronous syntax -->
+            <property name="violationSuppressRegex" value="^Found 'UR'-anomaly.*"/>
+        </properties>
+    </rule>
+
+    <!--
+        *******************************************************************************************
+                                           MULTITHREADING
+        *******************************************************************************************
+    -->
+
+    <rule ref="category/java/multithreading.xml" />
+
+    <!--
+        *******************************************************************************************
+                                           PERFORMANCE
+        *******************************************************************************************
+    -->
+
+    <rule ref="category/java/performance.xml">
+        <exclude name="SimplifyStartsWith" />
+    </rule>
+
+    <!--
+        *******************************************************************************************
+                                           SECURITY
+        *******************************************************************************************
+    -->
+
+    <rule ref="category/java/security.xml" />
+
+</ruleset>

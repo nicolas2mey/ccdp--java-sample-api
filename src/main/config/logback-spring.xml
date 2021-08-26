@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <include resource="logback-properties.xml"/>
+
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+    <springProperty name="spring.application.name" source="spring.application.name"/>
+
+    <!-- Containers environments -->
+    <springProfile name="dev,qa,sit,uat1,prep,prod">
+
+        <!-- Events/applicative logs -->
+        <appender name="CONSOLE_EVENTS" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <fieldName>log_timestamp</fieldName>
+                        <timeZone>UTC</timeZone>
+                    </timestamp>
+                    <pattern>
+                        <!-- Reference list: http://logback.qos.ch/apidocs/src-html/ch/qos/logback/classic/PatternLayout.html#line.39 -->
+                        <pattern>
+                            {
+                            "bu_code": "${bu_code}",
+                            "env": "${ENV}",
+                            "project_tangram":"${project_tangram}",
+                            "stream": "${stream}",
+                            "feature": "${feature}",
+                            "level": "%level",
+                            "thread": "%thread",
+                            "logger": "%logger",
+                            "class": "%class",
+                            "message": "%message",
+                            "method": "%method",
+                            "line": "%line",
+                            "hostname": "${HOSTNAME}",
+                            "trace_id": "%X{dd.trace_id:-0}",
+                            "span_id": "%X{dd.span_id:-0}",
+                            "data_privacy":"%X{private:-0}"
+                            }
+                        </pattern>
+                    </pattern>
+                    <stackTrace>
+                        <fieldName>exception</fieldName>
+                        <throwableConverter class="net.logstash.logback.stacktrace.ShortenedThrowableConverter">
+                            <maxDepthPerThrowable>30</maxDepthPerThrowable>
+                            <maxLength>2048</maxLength>
+                            <rootCauseFirst>true</rootCauseFirst>
+                        </throwableConverter>
+                    </stackTrace>
+                </providers>
+            </encoder>
+        </appender>
+
+        <!-- Access logs -->
+        <appender name="CONSOLE_ACCESS" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <fieldName>log_timestamp</fieldName>
+                        <timeZone>UTC</timeZone>
+                    </timestamp>
+                    <pattern>
+                        <!-- Reference list: http://logback.qos.ch/apidocs/src-html/ch/qos/logback/classic/PatternLayout.html#line.39 -->
+                        <pattern>
+                            {
+                            "bu_code": "${bu_code}",
+                            "env": "${ENV}",
+                            "project_tangram":"${project_tangram}",
+                            "stream": "${stream}",
+                            "feature": "${feature}",
+                            "message": "-",
+                            "hostname": "${HOSTNAME}",
+                            "http_query_string": "-",
+                            "http_referer": "-",
+                            "http_request_id": "-",
+                            "http_useragent": "-",
+                            "http_version": "-",
+                            "http_x_forwarded_for": "-",
+                            "trace_id": "%X{dd.trace_id:-0}",
+                            "span_id": "%X{dd.span_id:-0}"
+                            }
+                        </pattern>
+                    </pattern>
+                    <provider class="com.adeo.logback.composite.loggingevent.NettyAccessLogJsonProvider">
+                        <fields>address:http_host,method:http_method,uri:http_path,status:http_status_code,port:http_port,duration</fields>
+                    </provider>
+                </providers>
+            </encoder>
+        </appender>
+
+        <appender name="ASYNC_ACCESS" class="ch.qos.logback.classic.AsyncAppender">
+            <appender-ref ref="CONSOLE_ACCESS"/>
+        </appender>
+
+        <logger name="reactor.netty.http.server.AccessLog" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_ACCESS"/>
+        </logger>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_EVENTS"/>
+        </root>
+
+    </springProfile>
+
+    <!-- For local development -->
+    <springProfile name="local,test">
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
+
+</configuration>
