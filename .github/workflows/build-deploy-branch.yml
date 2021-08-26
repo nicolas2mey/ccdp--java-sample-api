@@ -20,8 +20,6 @@ on:
   # - master
   # - features branches, i.e. named feat/**
   # - fix, i.e. named fix/**
-  #
-  # TODO: add pull_request management on develop and master
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   push:
     branches:
@@ -50,7 +48,7 @@ env:
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Built component name (should be the same as maven artifact id or generated jar).
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  COMPONENT_NAME: sample-app
+  COMPONENT_NAME: ccdp-java-sample-api
 
 jobs:
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -66,8 +64,6 @@ jobs:
     steps:
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Information step, just reminds which branch is being built.
-      #
-      # TODO: remove this step one done.
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       - name: Display Build Branch
         run: |
@@ -113,10 +109,45 @@ jobs:
       - name: Build with Maven
         run: mvn ${{ env.MAVEN_CLI_OPTS }} verify
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      # Analyze with Sonar
+      # Upload artifacts so that next jobs can access it.
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Archive build artifacts for docker
+        uses: actions/upload-artifact@v2
+        with:
+          name: docker-${{github.run_id}}
+          path: |
+            /target/${{ env.COMPONENT_NAME }}.jar
+            Dockerfile
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Analyze with Sonar
+      #
+      # Same thing here, the SONAR_TOKEN has been put into repository secrets, could
+      # have been in Vault storage.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Sonar Options for pull request
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "sonar_options=-Dsonar.pullrequest.branch=${{ github.head_ref }} -Dsonar.pullrequest.key=${{ github.event.pull_request.number }} -Dsonar.pullrequest.base=${{ github.base_ref }} -Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}" >> $GITHUB_ENV
+      - name: Sonar options for push
+        if: github.event_name == 'push'
+        run: |
+          echo "sonar_options=-Dsonar.branch.name=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+      - name: Setup sonarqube
+        uses: warchant/setup-sonar-scanner@v3
+        with:
+         version: "4.4.0.2170"
+      - name: Run sonarqube
+        env:
+          run: sonar-scanner
+            ${{ env.sonar_branch_options }}
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.host.url=https://sonar.factory.adeo.cloud
+            -Dsonar.projectKey=${{ github.event.repository.name }}
+            -Dsonar.sources=.
+            ${{ env.sonar_options }}
 
   deploy:
+    needs: build
     runs-on: ubuntu-latest
     steps:
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
