@@ -27,15 +27,6 @@ on:
       - develop
       - 'feat/**'
       - 'fix/**'
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # Automatic launch, launched on pull requests on:
-  # - develop
-  # - master
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  pull_request:
-    branches:
-      - master
-      - develop
 env:
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Built component name (should be the same as maven artifact id or generated jar).
