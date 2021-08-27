@@ -39,14 +39,6 @@ on:
       - develop
 env:
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # JFROG artifactory repositories.
-  #
-  # The dev Docker registry may differ considering where your team stores its
-  # artifacts.
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  ADEO_PUBLIC_REGISTRY: adeo-docker-public.jfrog.io
-  ADEO_DEV_DOCKER_REGISTRY: adeo-docker-asfr-ccdp-ops-dev.jfrog.io
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Built component name (should be the same as maven artifact id or generated jar).
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   COMPONENT_NAME: ccdp-java-sample-api
@@ -66,6 +58,7 @@ jobs:
       # Sonar settings.
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       SONAR_URL: https://sonar.factory.adeo.cloud
+      SONAR_SCANNER_VERSION: '4.4.0.2170'
       SONAR_PROJECT_KEY: ccdp--java-sample-api
     steps:
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -123,6 +116,7 @@ jobs:
           name: docker-${{github.run_id}}
           path: |
             /target/${{ env.COMPONENT_NAME }}.jar
+            /target/lib/*.jar
             Dockerfile
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Analyze with Sonar
@@ -141,7 +135,7 @@ jobs:
       - name: Setup sonarqube
         uses: warchant/setup-sonar-scanner@v3
         with:
-          version: "4.4.0.2170"
+          version: ${{ env.SONAR_SCANNER_VERSION }}
       - name: Run sonarqube
         run: sonar-scanner
           -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
@@ -151,9 +145,25 @@ jobs:
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
   deploy:
+    env:
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # JFROG artifactory repositories.
+      #
+      # The dev Docker registry may differ considering where your team stores its
+      # artifacts.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      ADEO_PUBLIC_REGISTRY: adeo-docker-public.jfrog.io
+      ADEO_DEV_DOCKER_REGISTRY: adeo-docker-asfr-ccdp-ops-dev.jfrog.io
     needs: build
     runs-on: ubuntu-latest
     steps:
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Download artifacts from previous build step.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-${{github.run_id}}
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Login to ADEO Docker registries.
       #
@@ -176,42 +186,22 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Dockers build and push to JFROG artifactory.
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#      - name: Build and push
-#        uses: docker/build-push-action@v2
-#        with:
-#          file: ./Dockerfile
-#          context: .
-#          push: true
-#          tags: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}
-
-#      - name: Get Secrets from Vault
-#        uses: hashicorp/vault-action@v2.1.0
-#        id: secrets
-#        with:
-#          url: ${{ env.VAULT_ADDR }}
-#          namespace: ${{ env.VAULT_NAMESPACE }}
-#          method: approle
-#          roleId: ${{ secrets.ROLE_ID }}
-#          secretId: ${{ secrets.SECRET_ID }}
-#          exportToken: true
-#          secrets: |
-#            secret/data/mailbrew-sms/ARTIFACTORY_API_KEY ARTIFACTORY_API_KEY | ARTIFACTORY_API_KEY ;
-#            secret/data/mailbrew-sms/ARTIFACTORY_USER ARTIFACTORY_USER | ARTIFACTORY_USER ;
-#            secret/data/mailbrew-sms/turbine-token turbine-token | TURBINE_TOKEN ;
-
-
-#      - run: echo EXEC_JAR_PATH=$EXEC_JAR_PATH
-#      - run: if [ ! -z "$EXEC_JAR_PATH" ]; then cp -rf $EXEC_JAR_PATH $DOCKER_BUILD_PATH ; fi
-
-#      #- name: Extract branch name for branch
-#      #  if: startsWith(github.ref, 'refs/heads/')
-#      #  run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
-#      #- name: Set escaped tag name
-#      #  run: echo "TAG_NAME=$(echo ${{ env.BRANCH_NAME }} | sed 's/\//-/g')" >> $GITHUB_ENV
-#      - name: Build and push
-#        uses: docker/build-push-action@v2
-#        with:
-#          file: ./Dockerfile
-#          context: .
-#          push: true
-#          tags: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:latest
+      - name: Extract branch name for branch
+        if: startsWith(github.ref, 'refs/heads/')
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Cleanup tag name, transform 'feat/my-feat' into 'feat/my-feat'
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Set escaped tag name
+        run: |
+          echo "TAG_NAME=$(echo ${{ env.BRANCH_NAME }} | sed 's/\//-/g')" >> $GITHUB_ENV
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Dockers build and push to JFROG artifactory.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Build and push docker image ${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} to DEV registry
+        uses: docker/build-push-action@v2
+        with:
+          file: ./Dockerfile
+          context: .
+          push: true
+          tags: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}}
