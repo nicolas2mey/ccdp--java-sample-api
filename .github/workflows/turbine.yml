@@ -1,0 +1,38 @@
+# -----------------------------------------------------------------------------
+# This workflow uses Turbine API to deploy a component into an environment.
+# -----------------------------------------------------------------------------
+name: Turbine deploy
+
+on:
+  repository_dispatch:
+    types: [turbine_deploy]
+
+env:
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Think to remove the "-dev|qa|...|prod" part of the name displayed by Turbine.
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  TURBINE_ENVIRONMENT_PREFIX: cdp-jfl-sandbox
+
+jobs:
+  turbine:
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Calls Turbine API to perform a deployment.
+    #
+    # Again, a Turbine token must be created (you must create a token for your team,
+    # or a team you are part of).
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    name: Deploy ${{ github.event.client_payload.message.component_name }} on Turbine for env ${{ github.event.client_payload.message.env }} with version ${{ github.event.client_payload.message.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup env variables
+        run: |
+          echo "COMPONENT_NAME=$(echo ${{ github.event.client_payload.message.component_name }})" >> $GITHUB_ENV
+          echo "TURBINE_ENV_NAME=$(echo ${{ github.event.client_payload.message.env }} | tr A-Z a-z)" >> $GITHUB_ENV
+          echo "VERSION=$(echo ${{ github.event.client_payload.message.version }})" >> $GITHUB_ENV
+      - name: Turbine deploy ${{ env.COMPONENT_NAME }} version ${{ env.VERSION }} to ${{ env.TURBINE_ENV_NAME }}
+        uses: adeo/turbine-deploy-action@main
+        with:
+          token: ${{ secrets.TURBINE_TOKEN }}
+          environment: ${{ env.TURBINE_ENVIRONMENT_PREFIX }}-${{ env.TURBINE_ENV_NAME }}
+          component: ${{ env.COMPONENT_NAME }}
+          version: ${{ env.VERSION }}

@@ -1,9 +1,8 @@
 # -----------------------------------------------------------------------------
 # This workflow:
 #
-# - Builds selected branch (manual) or latest committed branch (automatic).
-# - Push analyze metrics to Sonar.
-# - Deploys built artifact in JFROG repository.
+# - Builds selected branch (manual) or latest committed branch (automatic) and push analyze metrics to Sonar.
+# - Build Docker image and push it into JFROG repository.
 # - Deploys application in Turbine (develop branch only).
 # -----------------------------------------------------------------------------
 name: build-deploy-branch
@@ -123,6 +122,14 @@ jobs:
       #
       # Same thing here, the SONAR_TOKEN has been put into repository secrets, could
       # have been in Vault storage.
+      #
+      # You must create a Sonar project before being to perform an analysis of
+      # your project: https://spootnik.adeo.cloud/all/new-sonar-project
+      #
+      # The recommended way to do is to user a token attached to a service account
+      # that has an LDAP and ...a lot of #$?*% stuff no one should have to deal with.
+      #
+      # Good luck, really: https://jira.adeo.com/confluence/display/QXP/Sonar
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       - name: Sonar Options for pull request
         if: github.event_name == 'pull_request'
@@ -144,7 +151,7 @@ jobs:
           -Dsonar.host.url=${{ env.SONAR_URL }}
           -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
-  deploy:
+  docker:
     env:
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # JFROG artifactory repositories.
@@ -184,14 +191,11 @@ jobs:
           username: ${{ secrets.ARTIFACTORY_USER }}
           password: ${{ secrets.ARTIFACTORY_PWD }}
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      # Dockers build and push to JFROG artifactory.
+      # Compute and clean up tag name, transform 'feat/my-feat' into 'feat/my-feat'
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       - name: Extract branch name for branch
         if: startsWith(github.ref, 'refs/heads/')
         run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
-      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      # Cleanup tag name, transform 'feat/my-feat' into 'feat/my-feat'
-      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       - name: Set escaped tag name
         run: |
           echo "TAG_NAME=$(echo ${{ env.BRANCH_NAME }} | sed 's/\//-/g')" >> $GITHUB_ENV
@@ -205,3 +209,32 @@ jobs:
           context: .
           push: true
           tags: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}}
+
+  deploy:
+    needs: docker
+    runs-on: ubuntu-latest
+    if: ${{ 'refs/heads/develop' == github.ref }}
+    steps:
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Pop an event for a Turbine deployment, see turbine.yml workflow file for
+    # more details.
+    #
+    # The DEPLOY_API_TOKEN secret is a token that will be used to use GITHUB API.
+    # See: https://github.com/marketplace/actions/dispatch-action
+    #
+    # Here, a personal access token has been created and stored into repository
+    # secrets.
+    #
+    # NB: remember to enable SSO and authorize ADEO on this token.
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - name: Turbine deploy ${{ env.COMPONENT_NAME }} to develop environment
+      uses: mvasigh/dispatch-action@main
+      with:
+        token: ${{ secrets.DEPLOY_API_TOKEN }}
+        event_type: turbine_deploy
+        message: |
+          {
+            "env": "dev",
+            "version": "develop",
+            "component_name": "${{ env.COMPONENT_NAME }}"
+          }
