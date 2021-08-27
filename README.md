@@ -28,6 +28,9 @@ It will expose a dumb API with a few applicative routes (port 8080):
 - GET `/prometheus`
   - Returns prometheus metrics.
 
+
+API documentation is available at: http://localhost:8080/swagger-ui.html
+
 ## 2. Technical stack.
 
 ### 2.1. Requirements.
