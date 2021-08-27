@@ -113,10 +113,10 @@ jobs:
       - name: Archive build artifacts for docker
         uses: actions/upload-artifact@v2
         with:
-          name: docker-${{github.run_id}}
+          name: docker-${{ github.run_id }}
           path: |
-            /target/${{ env.COMPONENT_NAME }}.jar
-            /target/lib/*.jar
+            ./target/${{ env.COMPONENT_NAME }}.jar
+            ./target/lib/
             Dockerfile
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Analyze with Sonar
@@ -163,7 +163,7 @@ jobs:
       - name: Download build artifacts
         uses: actions/download-artifact@v2
         with:
-          name: docker-${{github.run_id}}
+          name: docker-${{ github.run_id }}
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Login to ADEO Docker registries.
       #
