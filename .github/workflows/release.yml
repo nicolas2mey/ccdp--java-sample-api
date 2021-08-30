@@ -76,6 +76,9 @@ jobs:
         echo "::set-output name=version::$(echo $version)"
     - name: Print current version
       run: echo "Current version = ${{ steps.pom_version.outputs.version }}"
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Following steps will compute next release and snapshot versions.
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     - name: 'Compute next versions'
       id: next_versions
       uses: "WyriHaximus/github-action-next-semvers@v1"
@@ -100,6 +103,9 @@ jobs:
         echo "::set-output name=release::$(echo ${{ steps.pom_version.outputs.version }})"
     - name: Log versions
       run: echo "Releasing version ${{ steps.new_versions.outputs.release }}, new dev version will be ${{ steps.new_versions.outputs.snapshot }}"
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Prepare the Maven release.
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     - name: Configure git user
       run: |
         git config user.email "actions@github.com"
@@ -114,6 +120,9 @@ jobs:
         branch: ${{ github.ref }}
         tags: true
         force: true
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Writes release version into a file so that it can be read from another job.
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     - name: Write version to file
       run: echo ${{ steps.new_versions.outputs.release }} > version
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

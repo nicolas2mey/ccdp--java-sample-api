@@ -1,0 +1,44 @@
+# -----------------------------------------------------------------------------
+# This workflow will purge JFROG artifactory when a branch is deleted.
+# -----------------------------------------------------------------------------
+name: JFrog Cleanup
+
+on:
+  delete:
+    branches:
+      - '!master'
+      - '!develop'
+
+env:
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Artifactory configuration.
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  ARTIFACTORY_ADDR: "https://adeo.jfrog.io/artifactory"
+  ARTIFACTORY_REPOSITORY: "adeo-docker-asfr-ccdp-ops-dev"
+  ARTIFACTORY_PATH: "ccdp-java-sample-api"
+
+jobs:
+  jfrog_cleanup:
+    runs-on: ubuntu-latest
+    name: Cleanup ${{ github.event.ref }} branch related artifact
+    steps:
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Extracts tag name from branch name.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Extract docker tag from branch name
+        run: |
+          GITHUB_REF=${{ github.event.ref }}
+          BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})
+          echo "DOCKER_TAG=$(echo $BRANCH_NAME | sed 's/\//-/g')" >> $GITHUB_ENV
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Calls ADEO API to perform a cleanup.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: "Cleanup JFrog artifacts"
+        uses: adeo/cleanup-artifactory-action@v1
+        with:
+          artifactoryUrl: "${{ env.ARTIFACTORY_ADDR }}"
+          apiKey: "${{ secrets.ARTIFACTORY_PWD }}"
+          repository: "${{env.ARTIFACTORY_REPOSITORY }}"
+          path: "${{ env.ARTIFACTORY_PATH }}"
+          pattern: "${{ env.DOCKER_TAG }}"
+          dryRun: "false"
