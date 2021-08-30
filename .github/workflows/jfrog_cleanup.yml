@@ -35,4 +35,4 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       - name: "Cleanup JFrog artifacts"
         run: |
-          curl -u ${{ secrets.ARTIFACTORY_USER }}:${{ secrets.ARTIFACTORY_PWD }} -X DELETE ${{ env.ARTIFACTORY_ADDR }}/${{ env.ARTIFACTORY_REPOSITORY }}/${{ ARTIFACTORY_PATH }}/${{ env.DOCKER_TAG }}
+          curl -u ${{ secrets.ARTIFACTORY_USER }}:${{ secrets.ARTIFACTORY_PWD }} -X DELETE ${{ env.ARTIFACTORY_ADDR }}/${{ env.ARTIFACTORY_REPOSITORY }}/${{ env.ARTIFACTORY_PATH }}/${{ env.DOCKER_TAG }}
