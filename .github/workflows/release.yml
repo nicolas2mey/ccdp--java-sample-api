@@ -19,19 +19,16 @@ env:
   # Built component name (should be the same as maven artifact id or generated jar).
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   COMPONENT_NAME: ccdp-java-sample-api
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  # JFROG artifactory repositories.
-  #
-  # The dev Docker registry may differ considering where your team stores its
-  # artifacts.
-  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-  ADEO_PUBLIC_REGISTRY: adeo-docker-public.jfrog.io
-  ADEO_RELEASE_DOCKER_REGISTRY: adeo-docker-asfr-ccdp-ops-release.jfrog.io
 
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    env:
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Maven build options.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      MAVEN_CLI_OPTS: "--batch-mode -Dmaven.repo.local=${{ github.workspace }}/.m2/repository -Dadeo.artifactory.user=${{ secrets.ARTIFACTORY_USER }} -Dadeo.artifactory.pwd=${{ secrets.ARTIFACTORY_PWD }}"
     steps:
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Checkout current branch.
@@ -96,16 +93,11 @@ jobs:
         echo "::set-output name=next::$(echo $next_version)"
         export pure_next_version=$(echo "${next_version%%-*}")
         echo "::set-output name=pure_next_version::$(echo $pure_next_version)"
-    - name: 'Get next snapshot version'
-      id: snapshot_version
-      uses: "WyriHaximus/github-action-next-semvers@v1"
-      with:
-        version: ${{ steps.choose.outputs.pure_next_version }}
     - name: Set release and snapshot versions
       id: new_versions
       run: |
-        echo "::set-output name=snapshot::$(echo ${{ steps.snapshot_version.outputs.patch }}-SNAPSHOT)"
-        echo "::set-output name=release::$(echo ${{ steps.choose.outputs.next }})"
+        echo "::set-output name=snapshot::$(echo ${{ steps.next_versions.outputs.patch }}-SNAPSHOT)"
+        echo "::set-output name=release::$(echo ${{ steps.pom_version.outputs.version }})"
     - name: Log versions
       run: echo "Releasing version ${{ steps.new_versions.outputs.release }}, new dev version will be ${{ steps.new_versions.outputs.snapshot }}"
     - name: Configure git user
@@ -113,25 +105,82 @@ jobs:
         git config user.email "actions@github.com"
         git config user.name "GitHub Actions"
     - name: Release
-      run: mvn -B -ntp release:prepare release:clean -DpreparationGoals="clean verify deploy -B" -DpushChanges=false -DreleaseVersion=${{ steps.new_versions.outputs.release }} -DdevelopmentVersion=${{ steps.new_versions.outputs.snapshot }}
-#    - name: Generate changelog
-#            uses: heineiuo/create-changelogs@v0.2.8
-#            id: changelog
-#          - name: Append changelog
-#            run: echo -e "${{ steps.changelog.outputs.changelogs }}\n" >> CHANGELOG.md
-#          - name: Push changes
-#            uses: ad-m/github-push-action@master
-#            with:
-#              github_token: ${{ steps.secrets.outputs.GITHUB_SVC_TOKEN }}
-#              branch: ${{ github.ref }}
-#              tags: true
-#              force: true
-#          - name: Compress build artifacts
-#            run: |
-#              echo ${{ steps.new_versions.outputs.release }} > version
-#              tar -cvzf all_build.tgz */target/*-exec.jar */src/main/docker/Dockerfile version
-#          - name: Archive build artifacts
-#            uses: actions/upload-artifact@v2
-#            with:
-#              name: all_build-${{github.run_id}}
-#              path: all_build.tgz
+      run: |
+        mvn -B -ntp release:prepare release:clean -DpreparationGoals="clean deploy -B -Dmaven.test.skip=true" -DpushChanges=false -DreleaseVersion=${{ steps.new_versions.outputs.release }} -DdevelopmentVersion=${{ steps.new_versions.outputs.snapshot }}
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.DEPLOY_API_TOKEN }}
+        branch: ${{ github.ref }}
+        tags: true
+        force: true
+    - name: Write version to file
+      run: echo ${{ steps.new_versions.outputs.release }} > version
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    # Upload artifacts so that next jobs can access it.
+    # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - name: Archive build artifacts for docker
+      uses: actions/upload-artifact@v2
+      with:
+        name: docker-${{ github.run_id }}
+        path: |
+          ./target/${{ env.COMPONENT_NAME }}.jar
+          ./target/lib/
+          Dockerfile
+          version
+
+  docker:
+    env:
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # JFROG artifactory repositories.
+      #
+      # The dev Docker registry may differ considering where your team stores its
+      # artifacts.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      ADEO_PUBLIC_REGISTRY: adeo-docker-public.jfrog.io
+      ADEO_RELEASE_DOCKER_REGISTRY: adeo-docker-asfr-ccdp-ops-release.jfrog.io
+    name: Docker build and push
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Download artifacts from previous build step.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Download build artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: docker-${{ github.run_id }}
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Login to ADEO Docker registries.
+      #
+      # As we are using Docker Collections images for JRE, we must be able to log to:
+      # - ADEO Public registry
+      # - ADEO Developer registry
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Login to ADEO pulic registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.ADEO_PUBLIC_REGISTRY }}
+          username: ${{ secrets.ARTIFACTORY_USER }}
+          password: ${{ secrets.ARTIFACTORY_PWD }}
+      - name: Login to ADEO development registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}
+          username: ${{ secrets.ARTIFACTORY_USER }}
+          password: ${{ secrets.ARTIFACTORY_PWD }}
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Build Docker image and push to JFROG
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Set tag name
+        run: echo "TAG_NAME=$(cat version)" >> $GITHUB_ENV
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Dockers build and push to JFROG artifactory.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Build and push docker image ${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} to RELEASE registry
+        uses: docker/build-push-action@v2
+        with:
+          file: ./Dockerfile
+          context: .
+          push: true
+          tags: ${{ env.ADEO_RELEASE_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}}
