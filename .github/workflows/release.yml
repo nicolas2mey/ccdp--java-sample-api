@@ -27,19 +27,10 @@ env:
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   ADEO_PUBLIC_REGISTRY: adeo-docker-public.jfrog.io
   ADEO_RELEASE_DOCKER_REGISTRY: adeo-docker-asfr-ccdp-ops-release.jfrog.io
-#env:
-#  VAULT_ADDR: https://vault.factory.adeo.cloud
-#  VAULT_NAMESPACE: adeo/bomp
-#  ADEO_REGISTRY: adeo-docker.jfrog.io
-#  ADEO_PUBLIC_REGISTRY: adeo-docker-public.jfrog.io
-#  ADEO_RELEASE_DOCKER_REGISTRY: adeo-docker-adeo-bomp-release.jfrog.io
-#  ADEO_DOCKER_REGISTRY_GROUP: bomp
-#  TURBINE_ENVIRONMENT_PREFIX: cdp-adeo-bomp-gke-euw1
-#  PRODUCT_NAME: bomp-order
 
 jobs:
   release:
-    name: Release of ${{ env.COMPONENT_NAME }}
+    name: Release
     runs-on: ubuntu-latest
     steps:
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -78,5 +69,69 @@ jobs:
         servers: '[{"id": "adeo-artifactory-releases", "username": "${{ secrets.ARTIFACTORY_USER }}", "password": "${{ secrets.ARTIFACTORY_PWD }}"},{"id": "adeo-artifactory-snapshots", "username": "${{ secrets.ARTIFACTORY_USER }}", "password": "${{ secrets.ARTIFACTORY_PWD }}"},{"id": "adeo-artifactory-mirror", "username": "${{ secrets.ARTIFACTORY_USER }}", "password": "${{ secrets.ARTIFACTORY_PWD }}"}]'
         mirrors: '[{"id": "adeo-artifactory-mirror", "name": "Adeo Artifactory Mirror Repository", "mirrorOf": "*", "url": "https://adeo.jfrog.io/adeo/maven-mirror"}]'
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    # To continue...
+    # Get the pom version and remove the anything after the '-' character.
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    - name: Get maven version
+      id: pom_version
+      run: |
+        export version=$(mvn -q -Dexec.executable=echo -Dexec.args='${project.version}' --non-recursive exec:exec)
+        export version=$(echo "${version%%-*}")
+        echo "::set-output name=version::$(echo $version)"
+    - name: Print current version
+      run: echo "Current version = ${{ steps.pom_version.outputs.version }}"
+    - name: 'Compute next versions'
+      id: next_versions
+      uses: "WyriHaximus/github-action-next-semvers@v1"
+      with:
+        version: ${{ steps.pom_version.outputs.version }}
+    - name: Choose next version
+      id: choose
+      run: |
+        export version=$(echo ${{ github.event.inputs.version }})
+        if [[ $version != '' ]]; then export next_version=$version;
+        elif [[ ${{ github.event.inputs.type }} == "major" ]]; then export next_version=${{ steps.next_versions.outputs.major }};
+        elif [[ ${{ github.event.inputs.type }} == "minor" ]]; then export next_version=${{ steps.next_versions.outputs.minor }};
+        elif [[ ${{ github.event.inputs.type }} == "patch" ]]; then export next_version=${{ steps.next_versions.outputs.patch }};
+        fi
+        echo "::set-output name=next::$(echo $next_version)"
+        export pure_next_version=$(echo "${next_version%%-*}")
+        echo "::set-output name=pure_next_version::$(echo $pure_next_version)"
+    - name: 'Get next snapshot version'
+      id: snapshot_version
+      uses: "WyriHaximus/github-action-next-semvers@v1"
+      with:
+        version: ${{ steps.choose.outputs.pure_next_version }}
+    - name: Set release and snapshot versions
+      id: new_versions
+      run: |
+        echo "::set-output name=snapshot::$(echo ${{ steps.snapshot_version.outputs.patch }}-SNAPSHOT)"
+        echo "::set-output name=release::$(echo ${{ steps.choose.outputs.next }})"
+    - name: Log versions
+      run: echo "Releasing version ${{ steps.new_versions.outputs.release }}, new dev version will be ${{ steps.new_versions.outputs.snapshot }}"
+    - name: Configure git user
+      run: |
+        git config user.email "actions@github.com"
+        git config user.name "GitHub Actions"
+    - name: Release
+      run: mvn -B -ntp release:prepare release:clean -DpreparationGoals="clean verify deploy -B" -DpushChanges=false -DreleaseVersion=${{ steps.new_versions.outputs.release }} -DdevelopmentVersion=${{ steps.new_versions.outputs.snapshot }}
+#    - name: Generate changelog
+#            uses: heineiuo/create-changelogs@v0.2.8
+#            id: changelog
+#          - name: Append changelog
+#            run: echo -e "${{ steps.changelog.outputs.changelogs }}\n" >> CHANGELOG.md
+#          - name: Push changes
+#            uses: ad-m/github-push-action@master
+#            with:
+#              github_token: ${{ steps.secrets.outputs.GITHUB_SVC_TOKEN }}
+#              branch: ${{ github.ref }}
+#              tags: true
+#              force: true
+#          - name: Compress build artifacts
+#            run: |
+#              echo ${{ steps.new_versions.outputs.release }} > version
+#              tar -cvzf all_build.tgz */target/*-exec.jar */src/main/docker/Dockerfile version
+#          - name: Archive build artifacts
+#            uses: actions/upload-artifact@v2
+#            with:
+#              name: all_build-${{github.run_id}}
+#              path: all_build.tgz
