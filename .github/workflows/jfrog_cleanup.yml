@@ -34,11 +34,5 @@ jobs:
       # Calls ADEO API to perform a cleanup.
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       - name: "Cleanup JFrog artifacts"
-        uses: adeo/cleanup-artifactory-action@v1
-        with:
-          artifactoryUrl: "${{ env.ARTIFACTORY_ADDR }}"
-          apiKey: "${{ secrets.ARTIFACTORY_PWD }}"
-          repository: "${{env.ARTIFACTORY_REPOSITORY }}"
-          path: "${{ env.ARTIFACTORY_PATH }}"
-          pattern: "${{ env.DOCKER_TAG }}"
-          dryRun: "false"
+        run: |
+          curl -u ${{ secrets.ARTIFACTORY_USER }}:${{ secrets.ARTIFACTORY_PWD }} -X DELETE ${{ env.ARTIFACTORY_ADDR }}/${{ env.ARTIFACTORY_REPOSITORY }}/${{ ARTIFACTORY_PATH }}/${{ env.DOCKER_TAG }}
