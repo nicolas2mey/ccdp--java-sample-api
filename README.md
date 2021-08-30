@@ -114,3 +114,26 @@ The Pull Request process by itself will not process any build or deployment beca
 - launch a Sonar analysis
 - updates and push develop Docker image into JFROG artifactory
 - deploy docker image in your Turbine development environment.
+
+### 4.2. Hot fix.
+
+The process is pretty much the same as for features, but:
+
+- branch must be created from `master` branch
+- branch name must starts with `fix/`
+- the built artifact is not deployed automatically
+
+Once you finished your developments and merged them into `master`, you can perform a release.
+
+__! Do not forget to merge `master` content into `develop` once release is validated !__
+
+### 4.3. Release.
+
+The `release` action is available through `release` job. You must:
+
+- specify branch you wan to create a `release` tag for (should always be `master` branch)
+- specify (i.e. type) the version part you want to increment:
+  - `patch` (default value)
+  - `minor`
+  - `major`
+ 

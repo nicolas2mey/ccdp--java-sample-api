@@ -14,7 +14,7 @@ env:
   # Artifactory configuration.
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   ARTIFACTORY_ADDR: "https://adeo.jfrog.io/artifactory"
-  ARTIFACTORY_REPOSITORY: "adeo-docker-asfr-ccdp-ops-dev"
+  ARTIFACTORY_REPOSITORY: "docker-asfr-ccdp-ops-dev"
   ARTIFACTORY_PATH: "ccdp-java-sample-api"
 
 jobs:
