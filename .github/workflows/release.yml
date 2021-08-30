@@ -27,19 +27,10 @@ env:
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   ADEO_PUBLIC_REGISTRY: adeo-docker-public.jfrog.io
   ADEO_RELEASE_DOCKER_REGISTRY: adeo-docker-asfr-ccdp-ops-release.jfrog.io
-#env:
-#  VAULT_ADDR: https://vault.factory.adeo.cloud
-#  VAULT_NAMESPACE: adeo/bomp
-#  ADEO_REGISTRY: adeo-docker.jfrog.io
-#  ADEO_PUBLIC_REGISTRY: adeo-docker-public.jfrog.io
-#  ADEO_RELEASE_DOCKER_REGISTRY: adeo-docker-adeo-bomp-release.jfrog.io
-#  ADEO_DOCKER_REGISTRY_GROUP: bomp
-#  TURBINE_ENVIRONMENT_PREFIX: cdp-adeo-bomp-gke-euw1
-#  PRODUCT_NAME: bomp-order
 
 jobs:
   release:
-    name: Release of ${{ env.COMPONENT_NAME }}
+    name: Release
     runs-on: ubuntu-latest
     steps:
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
