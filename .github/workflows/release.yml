@@ -79,7 +79,7 @@ jobs:
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     # Following steps will compute next release and snapshot versions.
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    - name: 'Compute next versions'
+    - name: 'Compute next release version'
       id: next_versions
       uses: "WyriHaximus/github-action-next-semvers@v1"
       with:
@@ -89,18 +89,23 @@ jobs:
       run: |
         export version=$(echo ${{ github.event.inputs.version }})
         if [[ $version != '' ]]; then export next_version=$version;
-        elif [[ ${{ github.event.inputs.type }} == "major" ]]; then export next_version=${{ steps.next_versions.outputs.major }};
-        elif [[ ${{ github.event.inputs.type }} == "minor" ]]; then export next_version=${{ steps.next_versions.outputs.minor }};
-        elif [[ ${{ github.event.inputs.type }} == "patch" ]]; then export next_version=${{ steps.next_versions.outputs.patch }};
+        elif [[ "${{ github.event.inputs.type }}" == "major" ]]; then export next_version=${{ steps.next_versions.outputs.major }};
+        elif [[ "${{ github.event.inputs.type }}" == "minor" ]]; then export next_version=${{ steps.next_versions.outputs.minor }};
+        elif [[ "${{ github.event.inputs.type }}" == "patch" ]]; then export next_version=${{ steps.next_versions.outputs.patch }};
         fi
         echo "::set-output name=next::$(echo $next_version)"
         export pure_next_version=$(echo "${next_version%%-*}")
         echo "::set-output name=pure_next_version::$(echo $pure_next_version)"
+    - name: 'Get next snapshot version'
+      id: snapshot_version
+      uses: "WyriHaximus/github-action-next-semvers@v1"
+      with:
+        version: ${{ steps.choose.outputs.pure_next_version }}
     - name: Set release and snapshot versions
       id: new_versions
       run: |
-        echo "::set-output name=snapshot::$(echo ${{ steps.next_versions.outputs.patch }}-SNAPSHOT)"
-        echo "::set-output name=release::$(echo ${{ steps.pom_version.outputs.version }})"
+        echo "::set-output name=snapshot::$(echo ${{ steps.snapshot_version.outputs.patch }}-SNAPSHOT)"
+        echo "::set-output name=release::$(echo ${{ steps.choose.outputs.next }})"
     - name: Log versions
       run: echo "Releasing version ${{ steps.new_versions.outputs.release }}, new dev version will be ${{ steps.new_versions.outputs.snapshot }}"
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
