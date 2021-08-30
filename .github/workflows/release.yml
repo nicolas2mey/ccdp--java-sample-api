@@ -166,7 +166,7 @@ jobs:
       - name: Login to ADEO development registry
         uses: docker/login-action@v1
         with:
-          registry: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}
+          registry: ${{ env.ADEO_RELEASE_DOCKER_REGISTRY }}
           username: ${{ secrets.ARTIFACTORY_USER }}
           password: ${{ secrets.ARTIFACTORY_PWD }}
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
