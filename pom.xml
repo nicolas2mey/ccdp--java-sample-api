@@ -323,6 +323,37 @@
                 </configuration>
             </plugin>
 
+            <!-- Resources plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
+                <configuration>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>filter-sonar-project-properties</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${basedir}/</directory>
+                                    <filtering>true</filtering>
+                                    <includes>
+                                        <include>sonar-project-parametrized.properties</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <!-- Compile project -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -408,37 +439,6 @@
                         <configuration>
                             <outputDirectory>${project.build.directory}/lib</outputDirectory>
                             <includeScope>runtime</includeScope>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <!-- Resources plugin -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>${maven-resources-plugin.version}</version>
-                <configuration>
-                    <encoding>${project.build.sourceEncoding}</encoding>
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>filter-sonar-project-properties</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>copy-resources</goal>
-                        </goals>
-                        <configuration>
-                            <outputDirectory>${project.build.directory}</outputDirectory>
-                            <resources>
-                                <resource>
-                                    <directory>${basedir}/</directory>
-                                    <filtering>true</filtering>
-                                    <includes>
-                                        <include>sonar-project-parametrized.properties</include>
-                                    </includes>
-                                </resource>
-                            </resources>
                         </configuration>
                     </execution>
                 </executions>

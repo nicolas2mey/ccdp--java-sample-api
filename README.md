@@ -137,3 +137,11 @@ The `release` action is available through `release` job. You must:
   - `minor`
   - `major`
  
+## 5. CCDP Tooling integration.
+
+- Turbine deployment: https://turbine.adeo.cloud/environments/cdp-jfl-sandbox-dev/view/DEPLOYMENTS
+- Sonar: https://sonar.factory.adeo.cloud/dashboard?id=ccdp--java-sample-api
+- DataDog: 
+  - APM: https://app.datadoghq.eu/apm/service/ccdp-java-sample-api/netty.request?env=dev
+  - logs: https://app.datadoghq.eu/logs?query=%40env%3Adev%20service%3Accdp-java-sample-api&cols=host%2Cservice%2C%40http.url_details.path%2C%40http.status_code&index=&messageDisplay=inline&stream_sort=desc
+- JFrog artifactory: https://adeo.jfrog.io/ui/repos/tree/General/docker-asfr-ccdp-ops%2Fccdp-java-sample-api 
