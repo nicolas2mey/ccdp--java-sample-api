@@ -128,7 +128,7 @@ public class WebClientSettings {
     @AllArgsConstructor
     public static class PoolSettings {
 
-        private static final boolean DEFAULT_METRICS_ENABLED = false;
+        private static final boolean DEFAULT_METRICS_ENABLED = true;
 
         private static final int DEFAULT_MAX_CONNECTIONS = 20;
 
