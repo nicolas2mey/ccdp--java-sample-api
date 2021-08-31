@@ -87,11 +87,9 @@ jobs:
     - name: Choose next version
       id: choose
       run: |
-        export version=$(echo ${{ github.event.inputs.version }})
-        if [[ $version != '' ]]; then export next_version=$version;
-        elif [[ "${{ github.event.inputs.type }}" == "major" ]]; then export next_version=${{ steps.next_versions.outputs.major }};
+        if [[ "${{ github.event.inputs.type }}" == "major" ]]; then export next_version=${{ steps.next_versions.outputs.major }};
         elif [[ "${{ github.event.inputs.type }}" == "minor" ]]; then export next_version=${{ steps.next_versions.outputs.minor }};
-        elif [[ "${{ github.event.inputs.type }}" == "patch" ]]; then export next_version=${{ steps.next_versions.outputs.patch }};
+        elif [[ "${{ github.event.inputs.type }}" == "patch" ]]; then export next_version=${{ steps.pom_version.outputs.version }};
         fi
         echo "::set-output name=next::$(echo $next_version)"
         export pure_next_version=$(echo "${next_version%%-*}")
