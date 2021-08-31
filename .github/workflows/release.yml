@@ -96,16 +96,11 @@ jobs:
         echo "::set-output name=next::$(echo $next_version)"
         export pure_next_version=$(echo "${next_version%%-*}")
         echo "::set-output name=pure_next_version::$(echo $pure_next_version)"
-    - name: 'Get next snapshot version'
-      id: snapshot_version
-      uses: "WyriHaximus/github-action-next-semvers@v1"
-      with:
-        version: ${{ steps.choose.outputs.pure_next_version }}
     - name: Set release and snapshot versions
       id: new_versions
       run: |
-        echo "::set-output name=snapshot::$(echo ${{ steps.snapshot_version.outputs.patch }}-SNAPSHOT)"
-        echo "::set-output name=release::$(echo ${{ steps.choose.outputs.next }})"
+        echo "::set-output name=snapshot::$(echo ${{ steps.choose.outputs.pure_next_version }}-SNAPSHOT)"
+        echo "::set-output name=release::$(echo ${{ steps.pom_version.outputs.version }})"
     - name: Log versions
       run: echo "Releasing version ${{ steps.new_versions.outputs.release }}, new dev version will be ${{ steps.new_versions.outputs.snapshot }}"
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
