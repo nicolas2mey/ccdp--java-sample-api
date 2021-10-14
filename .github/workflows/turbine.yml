@@ -22,7 +22,7 @@ jobs:
     # or a team you are part of).
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     name: Deploy ${{ github.event.client_payload.message.component_name }} on Turbine for env ${{ github.event.client_payload.message.env }} with version ${{ github.event.client_payload.message.version }}
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, Linux, standard]
     steps:
       - name: Setup env variables
         run: |
