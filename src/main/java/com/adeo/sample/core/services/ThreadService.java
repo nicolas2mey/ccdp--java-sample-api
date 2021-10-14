@@ -36,7 +36,7 @@ public class ThreadService {
               .keySet()
               .forEach(this.threadInfo::add);
 
-        log.info(this.threadInfo.toString());
+        log.info("Number of visible(s) CPU={}, thread data={}", Runtime.getRuntime().availableProcessors(), this.threadInfo.toString());
     }
 
     @Value
