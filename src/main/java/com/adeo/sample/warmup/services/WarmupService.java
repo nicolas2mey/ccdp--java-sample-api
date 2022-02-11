@@ -60,7 +60,7 @@ public class WarmupService {
 
     private Stream<String> duplicateUris() {
 
-        return Stream.iterate(this.config.getUris(), candidate -> candidate)
+        return Stream.iterate(this.config.uris(), candidate -> candidate)
                      .limit(WARMUP_LOOP_SIZE)
                      .reduce(new ArrayList<>(), (lst1, lst2) -> {
                          lst1.addAll(lst2);

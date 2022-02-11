@@ -1,26 +1,22 @@
 package com.adeo.sample.core.beans;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
  * Basic bean for error management as a JSON response.
  *
+ * @param message
+ *     error message to display.
+ *
  * @author ccdpcloudops@adeo.com
  */
-@Data
-@AllArgsConstructor(access = AccessLevel.PRIVATE)
-@NoArgsConstructor
-public class ErrorResource implements Serializable {
+public record ErrorResource(String message) implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -8684011500459048592L;
-
-    private String message;
 
     /**
      * Creates a new {@link ErrorResource} instance.

@@ -40,10 +40,10 @@ class UserFactoryTest {
     void ensures_creating_users_works_accurately() {
 
         assertThat(UserFactory.create("Foo1", "Bar1"))
-            .hasToString("User(id=1, firstName=Foo1, lastName=Bar1)");
+            .hasToString("User[id=1, firstName=Foo1, lastName=Bar1]");
 
         assertThat(UserFactory.create("Foo2", "Bar2"))
-            .hasToString("User(id=2, firstName=Foo2, lastName=Bar2)");
+            .hasToString("User[id=2, firstName=Foo2, lastName=Bar2]");
     }
 
     private static Stream<Arguments> invalidInputs() {

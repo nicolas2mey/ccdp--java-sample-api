@@ -11,14 +11,7 @@ class UserTest {
     @DisplayName("Ensures creating user works accurately.")
     void ensures_creating_user_works_accurately() {
 
-        Assertions.assertThat(
-                      User.builder()
-                          .id(1L)
-                          .firstName("Foo")
-                          .lastName("Bar")
-                          .build()
-                          .toString()
-                  )
-                  .hasToString("User(id=1, firstName=Foo, lastName=Bar)");
+        Assertions.assertThat(new User(1L, "Foo", "Bar").toString())
+                  .hasToString("User[id=1, firstName=Foo, lastName=Bar]");
     }
 }

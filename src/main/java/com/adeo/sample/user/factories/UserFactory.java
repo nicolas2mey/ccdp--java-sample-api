@@ -46,10 +46,6 @@ public final class UserFactory {
         Assert.hasText(firstName, () -> "User's first name cannot be null or empty !");
         Assert.hasText(lastName, () -> "User's last name cannot be null or empty !");
 
-        return User.builder()
-                   .id(USER_CREATED_COUNTER.incrementAndGet())
-                   .firstName(firstName)
-                   .lastName(lastName)
-                   .build();
+        return new User(USER_CREATED_COUNTER.incrementAndGet(), firstName, lastName);
     }
 }

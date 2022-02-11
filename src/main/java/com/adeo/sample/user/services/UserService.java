@@ -73,10 +73,10 @@ public class UserService {
     public Mono<User> add(final User user) {
 
         return Mono.just(user)
-                   .filter(candidate -> 0L != candidate.getId())
-                   .filter(candidate -> !this.users.containsKey(candidate.getId()))
-                   .doOnNext(candidate -> this.users.put(candidate.getId(), candidate))
-                   .doOnSubscribe(subscription -> log.debug("Trying to add user {}/{}", user.getFirstName(), user.getLastName()));
+                   .filter(candidate -> 0L != candidate.id())
+                   .filter(candidate -> !this.users.containsKey(candidate.id()))
+                   .doOnNext(candidate -> this.users.put(candidate.id(), candidate))
+                   .doOnSubscribe(subscription -> log.debug("Trying to add user {}/{}", user.firstName(), user.lastName()));
     }
 
     /**

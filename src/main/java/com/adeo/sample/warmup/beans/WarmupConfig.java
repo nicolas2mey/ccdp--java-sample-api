@@ -1,26 +1,22 @@
 package com.adeo.sample.warmup.beans;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Warmup configuration bean.
  *
+ * @param uris
+ *     List of warmup URIs.
+ *
  * @author ccdpcloudops@adeo.com.
  */
-@Data
-@AllArgsConstructor
-public class WarmupConfig {
-
-    private List<String> uris;
+public record WarmupConfig(List<String> uris) {
 
     /**
      * Creates new {@link WarmupConfig} instance.
      */
     public WarmupConfig() {
-        this.uris = new ArrayList<>();
+        this(new ArrayList<>());
     }
 }
