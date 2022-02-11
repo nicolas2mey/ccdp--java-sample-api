@@ -37,11 +37,11 @@ class UserServiceTest {
 
         StepVerifier.create(
                         SUBJECT.add(UserFactory.create(DEFAULT_FIRST_NAME, DEFAULT_LAST_NAME))
-                               .doOnNext(created -> LAST_CREATED_ID.set(created.getId()))
+                               .doOnNext(created -> LAST_CREATED_ID.set(created.id()))
                     )
                     .expectNextMatches(
-                        user -> DEFAULT_FIRST_NAME.equalsIgnoreCase(user.getFirstName())
-                            && DEFAULT_LAST_NAME.equalsIgnoreCase(user.getLastName())
+                        user -> DEFAULT_FIRST_NAME.equalsIgnoreCase(user.firstName())
+                            && DEFAULT_LAST_NAME.equalsIgnoreCase(user.lastName())
                     )
                     .verifyComplete();
     }
@@ -51,13 +51,7 @@ class UserServiceTest {
     @Order(2)
     void ensures_adding_user_with_invalid_id_fails() {
 
-        StepVerifier.create(SUBJECT.add(
-                                User.builder()
-                                    .firstName(DEFAULT_FIRST_NAME)
-                                    .lastName(DEFAULT_LAST_NAME)
-                                    .build()
-                            )
-                    )
+        StepVerifier.create(SUBJECT.add(User.notIdentified(DEFAULT_FIRST_NAME, DEFAULT_LAST_NAME)))
                     .expectNextCount(0L)
                     .verifyComplete();
     }
@@ -69,8 +63,8 @@ class UserServiceTest {
 
         StepVerifier.create(SUBJECT.findById(LAST_CREATED_ID.get()))
                     .expectNextMatches(
-                        user -> DEFAULT_FIRST_NAME.equalsIgnoreCase(user.getFirstName())
-                            && DEFAULT_LAST_NAME.equalsIgnoreCase(user.getLastName()))
+                        user -> DEFAULT_FIRST_NAME.equalsIgnoreCase(user.firstName())
+                            && DEFAULT_LAST_NAME.equalsIgnoreCase(user.lastName()))
                     .verifyComplete();
     }
 

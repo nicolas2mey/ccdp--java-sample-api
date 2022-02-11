@@ -73,7 +73,7 @@ public class UserController {
                  produces = MediaType.APPLICATION_JSON_VALUE)
     public Mono<User> add(@RequestBody final User candidate) {
 
-        return this.userService.add(UserFactory.create(candidate.getFirstName(), candidate.getLastName()))
+        return this.userService.add(UserFactory.create(candidate.firstName(), candidate.lastName()))
                                .switchIfEmpty(
                                    Mono.error(
                                        new IllegalArgumentException(
@@ -96,7 +96,7 @@ public class UserController {
     public Mono<User> delete(@PathVariable final long id) {
 
         return this.findById(id)
-                   .flatMap(toDelete -> this.userService.delete(toDelete.getId()))
+                   .flatMap(toDelete -> this.userService.delete(toDelete.id()))
                    .switchIfEmpty(
                        Mono.error(
                            new IllegalArgumentException(

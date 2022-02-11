@@ -35,12 +35,12 @@ API documentation is available at: http://localhost:8080/swagger-ui.html
 
 ### 2.1. Requirements.
 
-- JDK 11+
+- JDK 17+
 - Maven 3.6+
 
 ### 2.2. Frameworks.
 
-- Spring Boot 2.5+
+- Spring Boot 2.6+
 - Resilience4j
 
 ## 3. Usage.
@@ -140,7 +140,7 @@ The `release` action is available through `release` job. You must:
 ## 5. CCDP Tooling integration.
 
 - Turbine deployment: https://turbine.adeo.cloud/environments/cdp-jfl-sandbox-dev/view/DEPLOYMENTS
-- Sonar: https://sonar.factory.adeo.cloud/dashboard?id=ccdp--java-sample-api
+- Sonar: https://sonarqube.adeo.cloud/dashboard?id=ccdp--java-sample-api
 - DataDog: 
   - APM: https://app.datadoghq.eu/apm/service/ccdp-java-sample-api/netty.request?env=dev
   - logs: https://app.datadoghq.eu/logs?query=%40env%3Adev%20service%3Accdp-java-sample-api&cols=host%2Cservice%2C%40http.url_details.path%2C%40http.status_code&index=&messageDisplay=inline&stream_sort=desc

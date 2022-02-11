@@ -26,11 +26,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class UserControllerTest {
 
-    private static final User TEST_USER = User.builder()
-                                              .id(1L)
-                                              .firstName("Foo")
-                                              .lastName("Bar")
-                                              .build();
+    private static final User TEST_USER = new User(1L, "Foo", "Bar");
 
     @Autowired
     WebTestClient webTestClient;
@@ -52,12 +48,7 @@ class UserControllerTest {
                           .contentType(MediaType.APPLICATION_JSON)
                           .accept(MediaType.APPLICATION_JSON)
                           .body(
-                              Mono.just(
-                                  User.builder()
-                                      .firstName("Foo")
-                                      .lastName("Bar")
-                                      .build()
-                              ),
+                              Mono.just(User.notIdentified("Foo", "Bar")),
                               User.class
                           )
                           .exchange()

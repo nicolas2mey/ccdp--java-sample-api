@@ -47,7 +47,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Sonar settings.
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      SONAR_URL: https://sonar.factory.adeo.cloud
+      SONAR_URL: https://sonarqube.adeo.cloud
       SONAR_SCANNER_VERSION: '4.4.0.2170'
       SONAR_PROJECT_KEY: ccdp--java-sample-api
     steps:
@@ -64,11 +64,11 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Set up JAVA compilation environment.
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
-          java-version: '11'
-          distribution: 'adopt'
+          java-version: '17'
+          distribution: 'temurin'
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Caches maven dependencies (avoid downloading them for every build, remember
       # build container will be destroyed after each run).
