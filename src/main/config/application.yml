@@ -11,6 +11,12 @@ spring:
       fail-fast: true
       connection-timeout: 5000
       read-timeout: 5000
+      config:
+        lifecycle:
+          enabled: false
+      session:
+        lifecycle:
+          enabled: false
   config:
     # NB: Spring documentation tells Vault contextualized path should include profile by themselves,
     # but it just doesn't. So we add combinations manually.
