@@ -32,4 +32,6 @@ jobs:
         uses: jfrog/setup-jfrog-cli@v2
         env:
           JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
+
+      - name: Ping Artifactory
         run: jfrog rt ping
