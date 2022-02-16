@@ -1,0 +1,35 @@
+# -----------------------------------------------------------------------------
+# This workflow will raise a XRAY SCAN into JFROG Artifactory.
+# -----------------------------------------------------------------------------
+name: JFrog XRAY Scan
+
+on:
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Manual launch, choose branch you want to (re)build.
+  #
+  # You'll be able to choose the branch you which when running action.
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  workflow_dispatch:
+    inputs:
+      type:
+        description: 'Release version to scan'
+        required: true
+        default: 'M.m.p'
+
+env:
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  # Artifactory configuration.
+  # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+  ARTIFACTORY_ADDR: "https://adeo.jfrog.io/artifactory"
+  ARTIFACTORY_REPOSITORY: "docker-asfr-ccdp-ops-dev"
+  ARTIFACTORY_PATH: "ccdp-java-sample-api"
+
+jobs:
+  jfrog_cleanup:
+    runs-on: [self-hosted, Linux, standard]
+    steps:
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v2
+        env:
+          JF_ARTIFACTORY_1: ${{ secrets.JF_ARTIFACTORY_SECRET_1 }}
+        run: jfrog rt ping
