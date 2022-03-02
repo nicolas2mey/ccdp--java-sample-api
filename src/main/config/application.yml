@@ -29,7 +29,7 @@ spring:
       vault://secret/${spring.application.name}/${AVAILABILITY_ZONE:default}/${BU_CODE},
       vault://secret/${spring.application.name}/${AVAILABILITY_ZONE:default}/${BU_CODE}/${spring.profiles.active}"
   jmx:
-    enabled: false
+    enabled: true
   main:
     banner-mode: off
 
