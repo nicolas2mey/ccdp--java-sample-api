@@ -217,9 +217,9 @@ jobs:
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v2
       - name: Configure JFrog CLI
-        run: jfrog config add --artifactory-url=${{ env.ARTIFACTORY_URL }} --user=${{ secrets.ARTIFACTORY_USER  }} --password=${{ secrets.ARTIFACTORY_PWD }} --interactive=false
+        run: jfrog config add ${{ env.ARTIFACTORY_SERVER_ID }} --artifactory-url=${{ env.ARTIFACTORY_URL }} --user=${{ secrets.ARTIFACTORY_USER  }} --password=${{ secrets.ARTIFACTORY_PWD }} --interactive=false
       - name: XRAY Scan
-        run: jfrog docker scan ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} --watches=all-high
+        run: jfrog docker scan ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} --watches=all-high --server-id ${{ env.ARTIFACTORY_SERVER_ID }}
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Dockers push to JFROG artifactory (build should result from local cache so
       # no second build penalty expected).
