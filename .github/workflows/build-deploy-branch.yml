@@ -206,13 +206,6 @@ jobs:
           tags: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}}
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Docker scan with JFROG XRAY.
-      #
-      # You will need a github secret that requires you too:
-      #
-      # - install JFROG client locally: https://www.jfrog.com/confluence/display/CLI/JFrog+CLI#JFrogCLI-Downloadandinstallation
-      # - configure your local client: https://jira.adeo.com/confluence/display/SOFA/HowTo+-+JFrog+-+JFrog+CLI
-      # - run command that will provide you a token: jf c export adeo.jrog.io
-      # - finally, you can store this token into a github repository secret named: JF_ARTIFACTORY_SECRET_1
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       - name: Setup JFrog CLI
         uses: jfrog/setup-jfrog-cli@v2
