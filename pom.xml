@@ -47,7 +47,7 @@
         <spring-cloud-starter.version>3.1.0</spring-cloud-starter.version>
         <springdoc-openapi.version>1.6.6</springdoc-openapi.version>
 
-        <lombok.version>1.18.22</lombok.version>
+        <lombok.version>1.18.24</lombok.version>
 
         <resilience4j.version>1.7.1</resilience4j.version>
 
