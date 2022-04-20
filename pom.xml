@@ -312,7 +312,10 @@
                             <goal>create-timestamp</goal>
                         </goals>
                         <configuration>
-                            <timestampFormat>{0,date,yyyy-MM-dd HH:mm:ss.SSS}</timestampFormat>
+                            <format>{0,date,yyyy-MM-dd HH:mm:ss}</format>
+                            <items>
+                                <item>timestamp</item>
+                            </items>
                         </configuration>
                     </execution>
                 </executions>
