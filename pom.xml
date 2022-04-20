@@ -45,7 +45,7 @@
         <java.version>17</java.version>
 
         <spring-cloud-starter.version>3.1.0</spring-cloud-starter.version>
-        <springdoc-openapi.version>1.6.6</springdoc-openapi.version>
+        <springdoc-openapi.version>1.6.7</springdoc-openapi.version>
 
         <lombok.version>1.18.24</lombok.version>
 
