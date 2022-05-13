@@ -15,11 +15,11 @@ on:
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   workflow_dispatch:
     inputs:
-      vulnerabilities:
+      on_scan_error:
         description: |
           Set behavior when a vulnerability issue is found during scan. Possible values are:
           IGNORE (just continue job), GITHUB_ISSUE (create a github issue), JOB_FAIL (makes job fail).
-        default: 'IGNORE'
+        default: 'GITHUB_ISSUE'
         required: true
         type: string
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -225,12 +225,12 @@ jobs:
         run: jfrog docker scan ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} --watches=all-high --server-id ${{ env.ARTIFACTORY_SERVER_ID }}
         continue-on-error: true
       - name: Create issue because of vulnerability
-        if: ${{ failure() && inputs.vulnerabilities == 'GITHUB_ISSUE' }}
+        if: failure() && github.event.inputs.on_scan_error == 'GITHUB_ISSUE'
         uses: JasonEtco/create-an-issue@v2
         env:
           GITHUB_TOKEN: ${{ secrets.DEPLOY_API_TOKEN }}
       - name: Exit build because of vulnerability
-        if: ${{ failure() && inputs.vulnerabilities == 'JOB_FAIL' }}
+        if: failure() && github.event.inputs.on_scan_error == 'JOB_FAIL'
         run: exit 1
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Dockers push to JFROG artifactory (build should result from local cache so
