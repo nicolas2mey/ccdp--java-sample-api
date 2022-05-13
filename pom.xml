@@ -56,7 +56,7 @@
         <logstash-logback-encoder.version>7.1.1</logstash-logback-encoder.version>
         <netty-access-log-logback-json-provider.version>2.0.0</netty-access-log-logback-json-provider.version>
 
-        <reactor-test.version>3.4.18</reactor-test.version>
+        <reactor-test.version>3.4.17</reactor-test.version>
         <junit.version>5.8.2</junit.version>
         <junit4.version>4.13.2</junit4.version>
         <assertj.version>3.22.0</assertj.version>

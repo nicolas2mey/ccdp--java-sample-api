@@ -14,6 +14,14 @@ on:
   # You'll be able to choose the branch you which when running action.
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   workflow_dispatch:
+    inputs:
+      vulnerabilities:
+        description: |
+          Set behavior when a vulnerability issue is found during scan. Possible values are:
+          IGNORE (just continue job), GITHUB_ISSUE (create a github issue), JOB_FAIL (makes job fail).
+        default: 'IGNORE'
+        required: true
+        type: string
   # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
   # Automatic launch, launched on push on:
   # - develop
@@ -157,6 +165,7 @@ jobs:
     needs: build
     runs-on: [self-hosted, Linux, standard]
     steps:
+      - uses: actions/checkout@v2
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Download artifacts from previous build step.
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -212,7 +221,17 @@ jobs:
       - name: Configure JFrog CLI
         run: jfrog config add ${{ env.ARTIFACTORY_SERVER_ID }} --url ${{ env.ARTIFACTORY_URL }} --user ${{ secrets.ARTIFACTORY_USER  }} --password ${{ secrets.ARTIFACTORY_PWD }} --interactive=false
       - name: XRAY Scan
+        id: xray_scan
         run: jfrog docker scan ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} --watches=all-high --server-id ${{ env.ARTIFACTORY_SERVER_ID }}
+        continue-on-error: true
+      - name: Create issue because of vulnerability
+        if: ${{ failure() && inputs.vulnerabilities == 'GITHUB_ISSUE' }}
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_API_TOKEN }}
+      - name: Exit build because of vulnerability
+        if: ${{ failure() && inputs.vulnerabilities == 'JOB_FAIL' }}
+        run: exit 1
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Dockers push to JFROG artifactory (build should result from local cache so
       # no second build penalty expected).
