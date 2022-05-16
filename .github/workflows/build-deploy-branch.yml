@@ -157,7 +157,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Behavior on XRAY scan errors
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      ON_SCAN_ERROR: 'IGNORE'
+      ON_SCAN_ERROR: 'JOB_FAIL'
     needs: build
     runs-on: [self-hosted, Linux, standard]
     steps:
