@@ -44,7 +44,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <java.version>17</java.version>
 
-        <spring-cloud-starter.version>3.1.0</spring-cloud-starter.version>
+        <spring-cloud-starter.version>3.1.2</spring-cloud-starter.version>
+        <spring-cloud-starter-vault.version>3.1.0</spring-cloud-starter-vault.version>
         <springdoc-openapi.version>1.6.8</springdoc-openapi.version>
 
         <lombok.version>1.18.24</lombok.version>
@@ -118,7 +119,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-vault-config</artifactId>
-            <version>${spring-cloud-starter.version}</version>
+            <version>${spring-cloud-starter-vault.version}</version>
         </dependency>
         <!-- Open API documentation -->
         <dependency>
