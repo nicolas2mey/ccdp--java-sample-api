@@ -61,7 +61,7 @@
         <junit.version>5.8.2</junit.version>
         <junit4.version>4.13.2</junit4.version>
         <assertj.version>3.23.1</assertj.version>
-        <ok-http.version>4.9.3</ok-http.version>
+        <ok-http.version>4.10.0</ok-http.version>
 
         <maven-copy-rename-maven-plugin.version>1.0</maven-copy-rename-maven-plugin.version>
         <maven-git-commit-id-plugin.version>5.0.0</maven-git-commit-id-plugin.version>
