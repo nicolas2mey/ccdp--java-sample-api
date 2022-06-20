@@ -50,6 +50,9 @@ server:
 
 
 management:
+  health:
+    vault:
+      enabled: false
   endpoint:
     env:
       enabled: true
