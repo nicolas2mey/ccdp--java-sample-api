@@ -181,8 +181,10 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Use Common actions
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      - uses: adeo/dxp--reusable-github-actions-workflows/.github/workflows/docker-build-with-xray-scan.yml@feat/add-docker-xray-scan-image
+      - name: build and scan docker image
+        uses: adeo/dxp--reusable-github-actions-workflows/.github/workflows/docker-build-with-xray-scan.yml@feat/add-docker-xray-scan-image
         with:
+          scan-mode: 'pass'
           docker-image-name: ${{ env.COMPONENT_NAME }}
           docker-image-tag: ${{ env.TAG_NAME }}
           docker-image-folder: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}
