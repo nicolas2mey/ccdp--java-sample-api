@@ -179,90 +179,72 @@ jobs:
         run: |
           echo "TAG_NAME=$(echo ${{ env.BRANCH_NAME }} | sed 's/\//-/g')" >> $GITHUB_ENV
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      # Use Common actions
+      # Login to ADEO Docker registries.
+      #
+      # As we are using Docker Collections images for JRE, we must be able to log to:
+      # - ADEO Public registry
+      # - ADEO Developer registry
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      - name: build and scan docker image
-        uses: adeo/dxp--reusable-github-actions-workflows/.github/workflows/docker-build-with-xray-scan.yml@feat/add-docker-xray-scan-image
+      - name: Login to ADEO pulic registry
+        uses: docker/login-action@v1
         with:
-          scan-mode: 'pass'
-          docker-image-name: ${{ env.COMPONENT_NAME }}
-          docker-image-tag: ${{ env.TAG_NAME }}
-          docker-image-folder: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}
-          docker-writer-user-name: ${{ secrets.ARTIFACTORY_USER }}
-          vault-namespace: 'adeo/ccdp-ops-tooling'
-          vault-secrets: |
-            secret/data/ci writer_user_token | DOCKER_WRITER_USER_TOKEN;
-          secrets:
-            vault-role-id: ${{ secrets.VAULT_ROLE_ID }}
-            vault-secret-id: ${{ secrets.VAULT_SECRET_ID }}
-
-#      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#      # Login to ADEO Docker registries.
-#      #
-#      # As we are using Docker Collections images for JRE, we must be able to log to:
-#      # - ADEO Public registry
-#      # - ADEO Developer registry
-#      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#      - name: Login to ADEO pulic registry
-#        uses: docker/login-action@v1
-#        with:
-#          registry: ${{ env.ADEO_PUBLIC_REGISTRY }}
-#          username: ${{ secrets.ARTIFACTORY_USER }}
-#          password: ${{ secrets.ARTIFACTORY_PWD }}
-#      - name: Login to ADEO development registry
-#        uses: docker/login-action@v1
-#        with:
-#          registry: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}
-#          username: ${{ secrets.ARTIFACTORY_USER }}
-#          password: ${{ secrets.ARTIFACTORY_PWD }}
-#      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#      # Compute and clean up tag name, transform 'feat/my-feat' into 'feat/my-feat'
-#      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#      - name: Extract branch name for branch
-#        if: startsWith(github.ref, 'refs/heads/')
-#        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
-#      - name: Set escaped tag name
-#        run: |
-#          echo "TAG_NAME=$(echo ${{ env.BRANCH_NAME }} | sed 's/\//-/g')" >> $GITHUB_ENV
-#      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#      # Dockers build.
-#      # This actions will not push image because we want to perform a XRAY scan
-#      # check before.
-#      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#      - name: Build and push docker image ${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} to DEV registry
-#        uses: docker/build-push-action@v2
-#        with:
-#          file: ./Dockerfile
-#          context: .
-#          load: true
-#          tags: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}}
-#      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#      # Docker scan with JFROG XRAY.
-#      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#      - name: Setup JFrog CLI
-#        uses: jfrog/setup-jfrog-cli@v2
-#      - name: Configure JFrog CLI
-#        run: jfrog config add ${{ env.ARTIFACTORY_SERVER_ID }} --url ${{ env.ARTIFACTORY_URL }} --user ${{ secrets.ARTIFACTORY_USER  }} --password ${{ secrets.ARTIFACTORY_PWD }} --interactive=false
-#      - name: XRAY Scan
-#        id: xray_scan
-#        run: jfrog docker scan ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} --watches=all-high --server-id ${{ env.ARTIFACTORY_SERVER_ID }}
-#        continue-on-error: ${{ env.ON_SCAN_ERROR !=  'JOB_FAIL' }}
-#      - name: Check if need to create an issue because of vulnerability
-#        id: create_issue_check
-#        if: ${{ steps.xray_scan.outcome == 'failure' && env.ON_SCAN_ERROR == 'GITHUB_ISSUE' }}
-#        uses: JasonEtco/create-an-issue@v2
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.DEPLOY_API_TOKEN }}
-#      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#      # Dockers push to JFROG artifactory (build should result from local cache so
-#      # no second build penalty expected).
-#      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#      - name: Build and push docker image ${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} to DEV registry
-#        uses: docker/build-push-action@v2
-#        with:
-#          context: .
-#          push: true
-#          tags: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}}
+          registry: ${{ env.ADEO_PUBLIC_REGISTRY }}
+          username: ${{ secrets.ARTIFACTORY_USER }}
+          password: ${{ secrets.ARTIFACTORY_PWD }}
+      - name: Login to ADEO development registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}
+          username: ${{ secrets.ARTIFACTORY_USER }}
+          password: ${{ secrets.ARTIFACTORY_PWD }}
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Compute and clean up tag name, transform 'feat/my-feat' into 'feat/my-feat'
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Extract branch name for branch
+        if: startsWith(github.ref, 'refs/heads/')
+        run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
+      - name: Set escaped tag name
+        run: |
+          echo "TAG_NAME=$(echo ${{ env.BRANCH_NAME }} | sed 's/\//-/g')" >> $GITHUB_ENV
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Dockers build.
+      # This actions will not push image because we want to perform a XRAY scan
+      # check before.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Build and push docker image ${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} to DEV registry
+        uses: docker/build-push-action@v2
+        with:
+          file: ./Dockerfile
+          context: .
+          load: true
+          tags: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}}
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Docker scan with JFROG XRAY.
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v2
+      - name: Configure JFrog CLI
+        run: jfrog config add ${{ env.ARTIFACTORY_SERVER_ID }} --url ${{ env.ARTIFACTORY_URL }} --user ${{ secrets.ARTIFACTORY_USER  }} --password ${{ secrets.ARTIFACTORY_PWD }} --interactive=false
+      - name: XRAY Scan
+        id: xray_scan
+        run: jfrog docker scan ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} --watches=all-high --server-id ${{ env.ARTIFACTORY_SERVER_ID }}
+        continue-on-error: ${{ env.ON_SCAN_ERROR !=  'JOB_FAIL' }}
+      - name: Check if need to create an issue because of vulnerability
+        id: create_issue_check
+        if: ${{ steps.xray_scan.outcome == 'failure' && env.ON_SCAN_ERROR == 'GITHUB_ISSUE' }}
+        uses: JasonEtco/create-an-issue@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEPLOY_API_TOKEN }}
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      # Dockers push to JFROG artifactory (build should result from local cache so
+      # no second build penalty expected).
+      # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+      - name: Build and push docker image ${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} to DEV registry
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: true
+          tags: ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}}
 
   deploy:
     needs: docker
