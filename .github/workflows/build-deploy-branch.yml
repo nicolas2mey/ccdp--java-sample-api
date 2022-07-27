@@ -157,7 +157,7 @@ jobs:
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Behavior on XRAY scan errors
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-      ON_SCAN_ERROR: 'IGNORE'
+      ON_SCAN_ERROR: 'GITHUB_ISSUE'
     needs: build
     runs-on: [self-hosted, Linux, standard]
     steps:
@@ -227,14 +227,25 @@ jobs:
         run: jfrog config add ${{ env.ARTIFACTORY_SERVER_ID }} --url ${{ env.ARTIFACTORY_URL }} --user ${{ secrets.ARTIFACTORY_USER  }} --password ${{ secrets.ARTIFACTORY_PWD }} --interactive=false
       - name: XRAY Scan
         id: xray_scan
-        run: jfrog docker scan ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} --watches=all-high --server-id ${{ env.ARTIFACTORY_SERVER_ID }}
+        run: jfrog docker scan ${{ env.ADEO_DEV_DOCKER_REGISTRY }}/${{ env.COMPONENT_NAME }}:${{env.TAG_NAME}} --watches=all-high --server-id ${{ env.ARTIFACTORY_SERVER_ID }} > scan.txt
         continue-on-error: ${{ env.ON_SCAN_ERROR !=  'JOB_FAIL' }}
       - name: Check if need to create an issue because of vulnerability
         id: create_issue_check
         if: ${{ steps.xray_scan.outcome == 'failure' && env.ON_SCAN_ERROR == 'GITHUB_ISSUE' }}
-        uses: JasonEtco/create-an-issue@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.DEPLOY_API_TOKEN }}
+        uses: dacbd/create-issue-action@main
+        with:
+          token: ${{ secrets.DEPLOY_API_TOKEN }}
+          title: CVE ISSUE
+          body: |
+            ### Context
+            [Failed Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+            [Codebase](https://github.com/${{ github.repository }}/tree/${{ github.sha }})
+            Workflow name - `${{ github.workflow }}`
+            Job -           `${{ github.job }}`
+            status -        `${{ job.status }}`
+            ### Content
+            `${{ echo scan.txt }}`
+
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Dockers push to JFROG artifactory (build should result from local cache so
       # no second build penalty expected).
