@@ -238,7 +238,7 @@ jobs:
             const fs = require('fs')
             const fileContents = fs.readFileSync('./scan.txt').toString()
             
-            github.rest.issues.createIssue({
+            github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               title: 'CVE Issue',
