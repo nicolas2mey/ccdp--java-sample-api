@@ -232,20 +232,32 @@ jobs:
       - name: Check if need to create an issue because of vulnerability
         id: create_issue_check
         if: ${{ steps.xray_scan.outcome == 'failure' && env.ON_SCAN_ERROR == 'GITHUB_ISSUE' }}
-        uses: dacbd/create-issue-action@main
+        uses: actions/github-script@v6
         with:
-          token: ${{ secrets.DEPLOY_API_TOKEN }}
-          title: CVE ISSUE
-          body: |
-            ### Context
-            [Failed Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            [Codebase](https://github.com/${{ github.repository }}/tree/${{ github.sha }})
-            Workflow name - `${{ github.workflow }}`
-            Job -           `${{ github.job }}`
-            status -        `${{ job.status }}`
-            ### Content
-          run:
-            cat ./scan.txt
+          script: |
+            const fs = require('fs')
+            const fileContents = fs.readFileSync('./scan.txt').toString()
+            
+            github.rest.issues.createIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'CVE Issue'
+              body: fileContents
+            })
+
+#        with:
+#          token: ${{ secrets.DEPLOY_API_TOKEN }}
+#          title: CVE ISSUE
+#          body: |
+#            ### Context
+#            [Failed Run](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+#            [Codebase](https://github.com/${{ github.repository }}/tree/${{ github.sha }})
+#            Workflow name - `${{ github.workflow }}`
+#            Job -           `${{ github.job }}`
+#            status -        `${{ job.status }}`
+#            ### Content
+#          run:
+#            cat ./scan.txt
 
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Dockers push to JFROG artifactory (build should result from local cache so
