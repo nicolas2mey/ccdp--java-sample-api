@@ -241,8 +241,8 @@ jobs:
             github.rest.issues.createIssue({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title: 'CVE Issue'
-              body: fileContents
+              title: 'CVE Issue',
+              body: fileContents,
             })
 
 #        with:
