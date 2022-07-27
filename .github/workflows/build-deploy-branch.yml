@@ -244,7 +244,8 @@ jobs:
             Job -           `${{ github.job }}`
             status -        `${{ job.status }}`
             ### Content
-            `${{ echo scan.txt }}`
+          run:
+            cat ./scan.txt
 
       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
       # Dockers push to JFROG artifactory (build should result from local cache so
