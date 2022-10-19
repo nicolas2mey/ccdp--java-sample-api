@@ -57,7 +57,7 @@
         <netty-access-log-logback-json-provider.version>2.0.0</netty-access-log-logback-json-provider.version>
 
         <reactor-test.version>3.4.24</reactor-test.version>
-        <junit.version>5.9.0</junit.version>
+        <junit.version>5.9.1</junit.version>
         <junit4.version>4.13.2</junit4.version>
         <assertj.version>3.23.1</assertj.version>
         <ok-http.version>4.10.0</ok-http.version>
