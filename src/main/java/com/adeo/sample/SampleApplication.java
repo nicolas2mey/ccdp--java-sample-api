@@ -2,6 +2,7 @@ package com.adeo.sample;
 
 import com.adeo.sample.core.CoreConfiguration;
 import com.adeo.sample.number.NumberConfiguration;
+import com.adeo.sample.path.PathConfiguration;
 import com.adeo.sample.user.UserConfiguration;
 import com.adeo.sample.warmup.WarmupConfiguration;
 import org.springframework.boot.SpringApplication;
@@ -18,7 +19,8 @@ import org.springframework.context.annotation.Import;
     CoreConfiguration.class,
     UserConfiguration.class,
     NumberConfiguration.class,
-    WarmupConfiguration.class
+    WarmupConfiguration.class,
+    PathConfiguration.class
 })
 public class SampleApplication {
 
