@@ -264,11 +264,11 @@ jobs:
     # NB: remember to enable SSO and authorize ADEO on this token.
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     - name: Turbine deploy ${{ env.COMPONENT_NAME }} to develop environment
-      uses: mvasigh/dispatch-action@main
+      uses: peter-evans/repository-dispatch@v2
       with:
         token: ${{ secrets.DEPLOY_API_TOKEN }}
-        event_type: turbine_deploy
-        message: |
+        event-type: turbine_deploy
+        client-payload: |
           {
             "env": "dev",
             "version": "develop",
