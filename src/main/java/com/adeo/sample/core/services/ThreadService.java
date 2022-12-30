@@ -1,9 +1,9 @@
 package com.adeo.sample.core.services;
 
+import jakarta.annotation.PostConstruct;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
-import javax.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -50,7 +50,7 @@ public class ThreadService {
 
         private void add(final Thread thread) {
             final var groupName = thread.getThreadGroup().getName();
-            
+
             this.threads.computeIfAbsent(groupName, key -> new ArrayList<>());
             this.threads.get(groupName).add(thread.getName());
         }
