@@ -26,9 +26,9 @@ jobs:
     steps:
       - name: Setup env variables
         run: |
-          echo "COMPONENT_NAME=$(echo ${{ github.event.client_payload.message.component_name }})" >> $GITHUB_ENV
-          echo "TURBINE_ENV_NAME=$(echo ${{ github.event.client_payload.message.env }} | tr A-Z a-z)" >> $GITHUB_ENV
-          echo "VERSION=$(echo ${{ github.event.client_payload.message.version }})" >> $GITHUB_ENV
+          echo "COMPONENT_NAME=$(echo ${{ github.event.client_payload.component_name }})" >> $GITHUB_ENV
+          echo "TURBINE_ENV_NAME=$(echo ${{ github.event.client_payload.env }} | tr A-Z a-z)" >> $GITHUB_ENV
+          echo "VERSION=$(echo ${{ github.event.client_payload.version }})" >> $GITHUB_ENV
       - name: Turbine deploy ${{ env.COMPONENT_NAME }} version ${{ env.VERSION }} to ${{ env.TURBINE_ENV_NAME }}
         uses: adeo/turbine-deploy-action@main
         with:
