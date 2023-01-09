@@ -60,7 +60,7 @@
         <reactor-test.version>3.5.1</reactor-test.version>
         <junit.version>5.9.1</junit.version>
         <junit4.version>4.13.2</junit4.version>
-        <assertj.version>3.23.1</assertj.version>
+        <assertj.version>3.24.1</assertj.version>
         <ok-http.version>4.10.0</ok-http.version>
 
         <maven-copy-rename-maven-plugin.version>1.0</maven-copy-rename-maven-plugin.version>
