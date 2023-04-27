@@ -28,8 +28,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # pragma: allowlist secret
+          OPENAI_API_ORG: ${{ secrets.OPENAI_API_ORG }}
         with:
           debug: false
           review_simple_changes: true
           review_comment_lgtm: true
-          openai_retries: 2
+          openai_retries: 1
