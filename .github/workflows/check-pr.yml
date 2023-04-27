@@ -27,7 +27,7 @@ jobs:
       - uses: actions/github-script@v6
         with:
           script: |
-            github.repos.getContent({
+            github.rest.repos.getContent({
               owner: repo.owner,
               repo: repo.repo,
               path: comment.path,
