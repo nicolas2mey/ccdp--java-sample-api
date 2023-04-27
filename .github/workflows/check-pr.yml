@@ -24,29 +24,12 @@ jobs:
         with:
           fetch-depth: 1
           
-      - uses: actions/github-script@v6
-        id: set-result
-        with:
-          script: |
-            return github.rest.repos.getContent({
-              owner: 'adeo',
-              repo: 'ccdp--java-sample-api',
-              path: '.github/workflows/check-pr.yml',
-              ref: 'bug/compillation-error'
-            })
-          result-encoding: string
-            
-  
-      - name: Get result
-        run: echo "${{steps.set-result.outputs.result}}"
-  
-  
       - uses: fluxninja/openai-pr-reviewer@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # pragma: allowlist secret
         with:
-          debug: true
+          debug: false
           review_simple_changes: true
           review_comment_lgtm: true
           openai_retries: 2
