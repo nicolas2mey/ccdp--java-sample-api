@@ -28,10 +28,10 @@ jobs:
         with:
           script: |
             github.rest.repos.getContent({
-              owner: repo.owner,
-              repo: repo.repo,
-              path: comment.path,
-              ref: context.payload.pull_request.base.sha
+              owner: 'adeo',
+              repo: 'ccdp--java-sample-api',
+              path: '.github/workflows/check-pr.yml',
+              ref: 'refs/heads/openai-pr-review'
             })
       - uses: fluxninja/openai-pr-reviewer@latest
         env:
