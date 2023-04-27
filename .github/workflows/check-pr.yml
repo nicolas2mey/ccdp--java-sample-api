@@ -28,7 +28,7 @@ jobs:
         id: set-result
         with:
           script: |
-            github.rest.repos.getContent({
+            return github.rest.repos.getContent({
               owner: 'adeo',
               repo: 'ccdp--java-sample-api',
               path: '.github/workflows/check-pr.yml',
