@@ -32,7 +32,7 @@ jobs:
               owner: 'adeo',
               repo: 'ccdp--java-sample-api',
               path: '.github/workflows/check-pr.yml',
-              ref: 'openai-pr-review'
+              ref: 'bug/compillation-error'
             })
           result-encoding: string
             
@@ -49,3 +49,4 @@ jobs:
           debug: true
           review_simple_changes: true
           review_comment_lgtm: true
+          openai_retries: 2
