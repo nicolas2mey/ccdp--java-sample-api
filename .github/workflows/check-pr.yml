@@ -22,25 +22,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 1
+          repository: ${{github.event.pull_request.head.repo.full_name}}
+          ref: ${{github.event.pull_request.head.ref}}
+          submodules: false
           
-      - uses: actions/github-script@v6
-        id: set-result
-        with:
-          script: |
-            github.rest.repos.getContent({
-              owner: 'adeo',
-              repo: 'ccdp--java-sample-api',
-              path: '.github/workflows/check-pr.yml',
-              ref: 'openai-pr-review'
-            })
-          result-encoding: string
-            
-  
-      - name: Get result
-        run: echo "${{steps.set-result.outputs.result}}"
-  
-  
       - uses: fluxninja/openai-pr-reviewer@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -48,4 +33,5 @@ jobs:
         with:
           debug: true
           review_simple_changes: true
-          review_comment_lgtm: true
+          openai_retries: 1
+          openai_concurrency_limit: 2
