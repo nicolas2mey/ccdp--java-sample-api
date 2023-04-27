@@ -33,3 +33,4 @@ jobs:
           review_simple_changes: true
           review_comment_lgtm: true
           openai_retries: 1
+          openai_concurrency_limit: 2
