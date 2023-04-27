@@ -20,7 +20,9 @@ jobs:
   review:
     runs-on: ubuntu-latest
     steps:
-
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
       - uses: fluxninja/openai-pr-reviewer@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
