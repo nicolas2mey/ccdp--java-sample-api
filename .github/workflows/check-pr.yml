@@ -32,7 +32,7 @@ jobs:
               owner: 'adeo',
               repo: 'ccdp--java-sample-api',
               path: '.github/workflows/check-pr.yml',
-              ref: 'refs/heads/openai-pr-review'
+              ref: 'openai-pr-review'
             })
           result-encoding: string
             
