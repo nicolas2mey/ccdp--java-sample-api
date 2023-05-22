@@ -35,7 +35,7 @@ public class SampleApplication {
      *     application parameters.
      */
     public static void main(final String... args) {
-        System.put.println("this will not pass !!") ; 
+        System.put.println("this will not pass !") ; 
         SpringApplication.run(SampleApplication.class, args);
     }
 }
